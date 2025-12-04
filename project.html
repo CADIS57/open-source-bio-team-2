@@ -4,43 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>크리스마스 트리 디자인 스튜디오</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* 배경 및 기본 레이아웃 스타일 */
+        /* 기본 레이아웃 및 배경 */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #10113C; /* Dark Blue Christmas Background */
+            background-color: #10113C;
             min-height: 100vh;
             color: #e2e8f0; 
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 1.5rem;
+            padding: 1.5rem; 
+            transition: all 0.5s;
         }
 
-        /* 트리가 배치될 영역 */
+        /* 트리 컨테이너 */
         .tree-shape-container {
             position: relative;
             width: 300px;
             height: 400px; 
             margin: 0 auto;
-            z-index: 1;
+            z-index: 10;
         }
         
-        /* 장식품 위치할 영역 */
+        /* 트리 잎사귀 영역: 장식품이 위치하는 영역 */
         .tree-leafs {
             position: relative;
             width: 100%;
             height: 85%; 
-            background-color: #16a34a; 
+            background-color: #16a34a;
             border-radius: 0 0 10% 10%;
             box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
-            clip-path: polygon(50% 0%, 100% 100%, 0% 100%); 
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+            transition: clip-path 0.3s ease-in-out, border-radius 0.3s ease-in-out;
+            overflow: hidden;
+        }
+        
+        /* 모양별 CSS */
+        .tree-shape-triangle .tree-leafs {
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+        }
+        .tree-shape-circle .tree-leafs {
+            clip-path: none;
+            border-radius: 50% 50% 10% 10% / 60% 60% 10% 10%;
         }
 
-        /* 별 위치 */
         .tree-star {
             position: absolute;
             top: 20px; 
@@ -48,10 +60,9 @@
             transform: translate(-50%, -100%); 
             font-size: 50px;
             z-index: 20;
-            pointer-events: none; 
+            pointer-events: none;
         }
 
-        /* 나무 밑둥 모양 */
         .tree-trunk {
             width: 20%;
             height: 15%; 
@@ -60,119 +71,98 @@
             margin: 0 auto;
         }
 
-        /* 버튼 모양 */
+        /* 컨트롤 패널 배경 */
         .control-bg {
-            background-color: #1e293b; 
+            background-color: #1e293b;
         }
 
-        /* Modal Styles */
-        #shape-modal {
-            z-index: 50; 
-            background-color: rgba(16, 17, 60, 0.9); 
-        }
-
-        /* Ornament Styles Placeholder (추후 JS에서 동적으로 적용) */
+        /* 장식품 스타일 (강조 기능 완전히 제거) */
         .ornament {
             position: absolute;
-            border-radius: 50%; 
+            border-radius: 50%;
+            background-color: #FFD700;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); 
+            border: 2px solid transparent; /* 시각적 테두리 제거 */
             cursor: pointer; 
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: none;
+        }
+        
+        /* 호버/선택 시 시각적 효과 제거 */
+        .ornament:hover,
+        .ornament.selected {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            transform: none; 
+            border: 2px solid transparent; 
+            z-index: 10;
+        }
+
+        /* 모달 스타일 수정: Z-Index를 최상위로 설정하여 트리에 가려지지 않게 함 */
+        #shape-modal {
+            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        /* 미리보기 모달 */
+        #preview-modal {
+            z-index: 2000;
         }
     </style>
 </head>
 <body class="p-6">
 
-    <!-- Reset Button (초기에는 숨김) -->
-    <button id="reset-button" class="fixed top-4 right-4 z-40 px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-full shadow-lg transition hidden">
+    <button id="reset-button" class="fixed top-4 right-4 z-40 px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-full shadow-lg transition hidden hover:bg-yellow-400">
         🔄 다시 하기
     </button>
 
-    <!-- Main Header -->
-    <header id="main-header" class="text-center mb-8 w-full max-w-5xl">
+    <header class="text-center mb-8 w-full max-w-5xl">
         <h1 class="text-4xl font-extrabold text-green-400">
             🎄 크리스마스 트리 디자인 스튜디오 🎄
         </h1>
-        <p class="text-gray-400 mt-2">트리 모양을 선택하여 나만의 장식을 완성해보세요!</p>
+        <p class="text-gray-400 mt-2">장식품을 클릭하여 선택 후, 크기를 조절하여 트리를 꾸며보세요!</p>
     </header>
 
-    <!-- Main Layout: Tree Area + Control Panel -->
     <div id="main-layout" class="flex flex-col lg:flex-row gap-10 w-full max-w-5xl">
         
-        <!-- 1. Tree Area (트리 디자인이 표시될 영역) -->
         <div id="tree-section" class="flex-shrink-0 w-full lg:w-1/2 flex flex-col items-center">
+        
             <div id="tree-container-wrapper" class="w-full h-full flex justify-center items-center">
                 <div id="tree-container" class="tree-shape-container tree-shape-triangle"> 
                     <div class="tree-star">⭐</div>
                     <div id="leafs-area" class="tree-leafs">
-                    </div>
+                        </div>
                     <div class="tree-trunk"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 2. Control Panel (장식품 속성을 제어하는 패널) -->
         <div id="control-panel" class="w-full lg:w-1/2 p-6 control-bg rounded-xl shadow-2xl space-y-6">
-            <h2 id="panel-title" class="text-2xl font-bold text-red-400 mb-4 border-b border-gray-700 pb-2">장식품 속성 제어</h2>
+            <h2 class="text-2xl font-bold text-red-400 mb-4 border-b border-gray-700 pb-2">장식품 제어</h2>
             
             <p id="status-message" class="text-sm text-center text-gray-400 mt-4">
-                트리 모양 선택 후 장식품을 추가/선택할 수 있습니다.
+                트리 모양 선택 후 장식품을 클릭하여 크기를 조절하세요.
             </p>
 
-            <!-- 장식품 추가 버튼 -->
-            <button id="add-ornament-button" class="w-full py-2 bg-purple-600 text-white font-bold rounded-lg shadow-md disabled:bg-gray-600">
-                ➕ 새 장식품 추가
-            </button>
+            <div id="size-controls" class="space-y-4 border-t border-gray-700 pt-4 opacity-50 pointer-events-none transition duration-300">
+                <h3 class="text-xl font-semibold text-gray-300">선택된 장식품 속성</h3>
+                
+                <div>
+                    <label for="size-slider" class="block text-gray-400 mb-2">크기: <span id="size-display">20</span>px</label>
+                    <input type="range" id="size-slider" min="20" max="60" value="20" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
             
-            <!-- 장식품 삭제 버튼 -->
-            <button id="delete-ornament-button" class="w-full py-2 bg-red-700 text-white font-bold rounded-lg shadow-md disabled:bg-gray-600">
-                ❌ 선택 장식품 삭제
-            </button>
-
-            <!-- 색상 변경 섹션 -->
-            <div class="space-y-4 border-t border-gray-700 pt-4">
-                <h3 class="text-xl font-semibold text-gray-300">색상 변경</h3>
-                <div id="color-inputs" class="flex justify-center items-center gap-4 p-4 border border-gray-700 rounded-lg control-bg">
-                    <input type="color" id="native-color-input" class="native-color-picker" value="#ffffff" disabled>
-                    <input type="text" id="hex-color-input" class="px-2 py-1 rounded w-32 text-gray-900 bg-gray-200 font-bold" value="#FFFFFF" placeholder="#FFFFFF" disabled>
-                </div>
-                <div class="flex flex-wrap justify-center gap-2" id="preset-colors">
-                </div>
-            </div>
-
-            <!-- 크기 변경 섹션 -->
-            <div class="space-y-4 border-t border-gray-700 pt-4">
-                <h3 class="text-xl font-semibold text-gray-300">크기 변경</h3>
-                <div class="flex items-center gap-4 p-4 border border-gray-700 rounded-lg control-bg">
-                    <span id="size-display" class="w-10 text-center font-bold text-yellow-400">25</span>
-                    <input type="range" id="size-slider" min="20" max="60" value="25" disabled class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                </div>
-            </div>
-
-            <!-- 모양 변경 섹션 -->
-            <div class="space-y-4 border-t border-gray-700 pt-4">
-                <h3 class="text-xl font-semibold text-gray-300">모양 변경</h3>
-                <div id="shape-controls" class="flex justify-center gap-4">
-                    <button data-shape="circle" class="shape-button flex-1 py-2 bg-blue-600 text-white font-bold rounded-lg disabled:bg-gray-600">원형 (●)</button>
-                    <button data-shape="square" class="shape-button flex-1 py-2 bg-blue-600 text-white font-bold rounded-lg disabled:bg-gray-600">사각형 (■)</button>
-                    <button data-shape="diamond" class="shape-button flex-1 py-2 bg-blue-600 text-white font-bold rounded-lg disabled:bg-gray-600">마름모 (◆)</button>
-                </div>
-            </div>
-
-            <!-- 완성 버튼 -->
             <div class="border-t border-gray-700 pt-6">
-                <button id="complete-button" class="w-full py-3 bg-red-600 text-white text-xl font-extrabold rounded-lg shadow-xl disabled:opacity-50">
-                    ✔️ 완성했어요!
+                <button id="complete-button" class="w-full py-3 bg-green-700 text-white text-xl font-extrabold rounded-lg shadow-xl disabled:opacity-50 hover:bg-green-600 transition" disabled>
+                    ✨ 디자인 미리보기!
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- 트리 모양 선택 모달 (최초 실행 시 표시됨) -->
     <div id="shape-modal" class="modal fixed inset-0 flex items-center justify-center p-4">
         <div class="modal-content p-8 rounded-xl w-full max-w-md text-center space-y-6 control-bg shadow-2xl">
             <h3 class="text-3xl font-extrabold text-green-400">트리 모양을 선택해주세요</h3>
-            <p class="text-gray-300">선택 후 장식품을 추가/편집할 수 있습니다.</p>
+            <p class="text-gray-300">선택 후 기존 장식품들을 편집할 수 있습니다.</p>
             <div class="flex justify-around gap-4">
                 <button data-shape="triangle" class="shape-select-button flex-1 py-4 bg-green-700 text-white font-bold rounded-lg hover:bg-green-600 transition shadow-lg">
                     삼각형 트리 (▲)
@@ -184,27 +174,297 @@
         </div>
     </div>
 
-    <!-- 완성 메시지 모달 (완성 버튼 클릭 시 표시) -->
-    <div id="complete-message" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 p-4">
+    <div id="preview-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 p-4">
         <div class="modal-content p-8 rounded-xl w-full max-w-lg text-center space-y-6 control-bg shadow-2xl">
-            <h3 class="text-3xl font-extrabold text-yellow-400">✨ 짜잔! 멋진 트리가 완성되었어요! ✨</h3>
-            <p class="text-gray-300">트리를 초기화하고 다시 시작하려면 '다시 하기' 버튼을 눌러주세요.</p>
-            <div id="complete-image-wrapper" class="w-full h-auto shadow-2xl rounded-lg border-4 border-white overflow-hidden mx-auto">
-                <img id="complete-image" 
-                     src="https://placehold.co/500x500/10113C/e2e8f0?text=Completed+Tree"
-                     alt="Completed Christmas Tree" 
-                     class="w-full h-full object-cover">
-            </div>
+            <h3 class="text-3xl font-extrabold text-yellow-400">✨ 완성된 트리를 감상하세요! ✨</h3>
+            <p class="text-gray-300">이 미리보기는 현재 디자인을 반영합니다. 창을 닫고 다시 편집하려면 '다시 하기' 버튼을 누르세요.</p>
+            <button onclick="document.getElementById('preview-modal').classList.add('hidden')" class="py-2 px-6 bg-red-600 text-white font-bold rounded-lg hover:bg-red-500 transition">
+                미리보기 닫기
+            </button>
         </div>
     </div>
 
     <script>
+        // --- 1. 상태 및 초기 설정 ---
+        let isTreeSelected = false;
+        let ornaments = []; // {id: number, x: number, y: number, color: string, size: number, isSelected: boolean}
+        let selectedOrnamentId = null;
+        let activeOrnament = null;
+        let nextOrnamentId = 1;
+        
+        // 장식품 크기 설정
+        const MIN_ORNAMENT_SIZE = 20; // px
+        const MAX_ORNAMENT_SIZE = 60; // px
+        const DEFAULT_ORNAMENT_SIZE = 20; // 초기 크기
+        const TREE_LEAF_HEIGHT_PERCENT = 85; 
+        const CONTAINER_HEIGHT_PX = 400; // tree-shape-container의 고정 높이
 
-        document.querySelectorAll('.shape-select-button').forEach(button => {
-            button.addEventListener('click', () => {
-                alert('기능 아직 추가 안함');
+        // 초기 장식품 데이터
+        const INITIAL_ORNAMENTS_DATA = [
+            { x: 150, y: 50, color: '#FFD700', size: 40 }, 
+            { x: 100, y: 150, color: '#FF0000', size: 30 },
+            { x: 200, y: 250, color: '#0000FF', size: 25 },
+            { x: 70, y: 300, color: '#00FF00', size: 45 },
+            { x: 230, y: 100, color: '#FFFFFF', size: 20 },
+        ];
+
+        // --- 2. DOM 요소 참조 ---
+        const treeContainer = document.getElementById('tree-container');
+        const leafsArea = document.getElementById('leafs-area');
+        const shapeModal = document.getElementById('shape-modal');
+        const resetButton = document.getElementById('reset-button');
+        const statusMessage = document.getElementById('status-message');
+        const completeButton = document.getElementById('complete-button');
+        const sizeControls = document.getElementById('size-controls');
+        const sizeSlider = document.getElementById('size-slider');
+        const sizeDisplay = document.getElementById('size-display');
+        const previewModal = document.getElementById('preview-modal');
+
+
+        // --- 3. 유틸리티 함수 ---
+        
+        /**
+         * 장식품의 중심 좌표가 트리 잎사귀 영역 내에 있는지 확인하고 랜덤 위치를 반환합니다.
+         */
+        function getRandomPositionInTree(treeShape, width, height) {
+            let x, y, isInside = false;
+            let attempts = 0;
+            const halfMinSize = MIN_ORNAMENT_SIZE / 2; 
+            const treeLeafHeightPx = height * (TREE_LEAF_HEIGHT_PERCENT / 100);
+
+            while (!isInside && attempts < 100) { 
+                x = Math.random() * (width - MIN_ORNAMENT_SIZE) + halfMinSize; 
+                y = Math.random() * (treeLeafHeightPx - MIN_ORNAMENT_SIZE) + halfMinSize;
+                
+                const normX = x / width;
+                const normY = y / height;
+                
+                if (treeShape === 'triangle') {
+                    const treeHeightNorm = TREE_LEAF_HEIGHT_PERCENT / 100;
+                    const slope = 0.5 / treeHeightNorm;
+                    const isLeft = normX <= 0.5;
+                    const boundaryY = isLeft ? (0.5 - normX) / slope : (normX - 0.5) / slope;
+                    
+                    if (normY >= boundaryY && normY <= treeHeightNorm) {
+                        isInside = true;
+                    }
+                } else if (treeShape === 'circle') {
+                    const h = width / 2;
+                    const k = treeLeafHeightPx / 2;
+                    const a = width / 2;
+                    const b = treeLeafHeightPx / 2;
+                    const termX = Math.pow(x - h, 2) / Math.pow(a, 2);
+                    const termY = Math.pow(y - k, 2) / Math.pow(b, 2);
+                    if (termX + termY <= 1) {
+                        isInside = true;
+                    }
+                }
+                attempts++;
+            }
+            
+            if (!isInside) {
+                x = width / 2;
+                y = treeLeafHeightPx / 2;
+            }
+
+            return { 
+                x: Math.round(x), 
+                y: Math.round(y) 
+            };
+        }
+
+        /**
+         * 장식품 배열을 기반으로 HTML 요소를 렌더링하고 이벤트 리스너를 연결합니다.
+         */
+        function renderOrnament(ornament) {
+            const element = document.createElement('div');
+            element.className = `ornament`;
+            element.id = `ornament-${ornament.id}`;
+            element.style.backgroundColor = ornament.color;
+            element.style.width = `${ornament.size}px`;
+            element.style.height = `${ornament.size}px`;
+            
+            const halfSize = ornament.size / 2;
+            element.style.left = `${ornament.x - halfSize}px`;
+            element.style.top = `${ornament.y - halfSize}px`;
+
+            if (ornament.isSelected) {
+                element.classList.add('selected'); // 내부적으로 선택 상태 유지 (크기 조절 제어용)
+            }
+
+            // **클릭 리스너 연결 (선택/해제)**
+            element.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                handleOrnamentClick(ornament.id); 
             });
-        });
+
+            return element;
+        }
+
+        function renderAllOrnaments() {
+            leafsArea.innerHTML = '';
+            ornaments.forEach(ornament => {
+                leafsArea.appendChild(renderOrnament(ornament));
+            });
+
+            activeOrnament = ornaments.find(o => o.isSelected) || null;
+            updateControlPanel();
+        }
+
+        /**
+         * 선택된 장식품의 크기를 변경하고 DOM에 반영합니다.
+         */
+        function applySizeChange(newSize) {
+            if (!activeOrnament) return;
+            const size = parseInt(newSize);
+            activeOrnament.size = size;
+            
+            const el = document.getElementById(`ornament-${activeOrnament.id}`);
+            if (el) {
+                const halfSize = size / 2;
+                const width = leafsArea.offsetWidth;
+                const maxLeafHeight = leafsArea.offsetHeight;
+
+                // 위치 재조정 (중심 유지 및 경계 제한)
+                let newX = activeOrnament.x;
+                let newY = activeOrnament.y;
+
+                // X축 경계 제한
+                newX = Math.max(halfSize, Math.min(width - halfSize, newX));
+                // Y축 경계 제한 (잎사귀 요소의 최대 높이까지)
+                newY = Math.max(halfSize, Math.min(maxLeafHeight - halfSize, newY));
+
+                activeOrnament.x = newX;
+                activeOrnament.y = newY;
+                
+                // 크기 및 위치 DOM 반영
+                el.style.width = `${size}px`;
+                el.style.height = `${size}px`;
+                el.style.left = `${activeOrnament.x - halfSize}px`;
+                el.style.top = `${activeOrnament.y - halfSize}px`;
+            }
+        }
+
+        function updateControlPanel() {
+            completeButton.disabled = !isTreeSelected || ornaments.length === 0;
+
+            if (activeOrnament) {
+                sizeControls.classList.remove('opacity-50', 'pointer-events-none');
+                sizeSlider.value = activeOrnament.size;
+                sizeDisplay.textContent = activeOrnament.size;
+            } else {
+                sizeControls.classList.add('opacity-50', 'pointer-events-none');
+                sizeSlider.value = DEFAULT_ORNAMENT_SIZE;
+                sizeDisplay.textContent = DEFAULT_ORNAMENT_SIZE;
+            }
+
+            statusMessage.textContent = isTreeSelected 
+                ? `총 장식품: ${ornaments.length}개. ${activeOrnament ? '선택된 장식품의 크기(20px~60px)를 조절하세요.' : '장식품을 클릭하여 선택하세요.'}`
+                : '트리 모양 선택 후 장식품을 선택하여 편집할 수 있습니다.';
+        }
+        
+        // --- 4. 장식품 관리 함수 ---
+        
+        /**
+         * 장식품 선택/해제 토글
+         */
+        function handleOrnamentClick(id) {
+            let newSelectedId = (selectedOrnamentId === id) ? null : id;
+
+            // 데이터 모델 업데이트
+            ornaments = ornaments.map(o => ({ ...o, isSelected: o.id === newSelectedId, }));
+            selectedOrnamentId = newSelectedId;
+            
+            renderAllOrnaments(); 
+        }
+        
+        // --- 5. 초기화 및 이벤트 연결 ---
+        
+        function setTreeShape(shape) {
+            treeContainer.classList.remove('tree-shape-triangle', 'tree-shape-circle');
+            treeContainer.classList.add(`tree-shape-${shape}`);
+            
+            shapeModal.classList.add('hidden');
+            resetButton.classList.remove('hidden'); 
+            isTreeSelected = true;
+
+            // DOM 크기가 반영될 시간을 잠시 확보
+            setTimeout(() => {
+                const width = leafsArea.offsetWidth;
+                
+                // 고정된 초기 장식품 목록을 현재 트리 모양에 맞춰 배치
+                ornaments = INITIAL_ORNAMENTS_DATA.map((data) => {
+                    const randomPos = getRandomPositionInTree(shape, width, CONTAINER_HEIGHT_PX);
+                    
+                    return {
+                        id: nextOrnamentId++,
+                        x: randomPos.x, 
+                        y: randomPos.y, 
+                        color: data.color, 
+                        size: data.size,
+                        isSelected: false,
+                    };
+                });
+                selectedOrnamentId = null; 
+                renderAllOrnaments();
+            }, 50); 
+        }
+        
+        function resetApp() {
+            isTreeSelected = false;
+            ornaments = [];
+            selectedOrnamentId = null;
+            activeOrnament = null;
+            leafsArea.innerHTML = '';
+            nextOrnamentId = 1;
+            
+            treeContainer.classList.remove('tree-shape-triangle', 'tree-shape-circle');
+            treeContainer.classList.add('tree-shape-triangle'); 
+            resetButton.classList.add('hidden');
+            shapeModal.classList.remove('hidden');
+            previewModal.classList.add('hidden'); // 미리보기 모달 숨김
+            
+            updateControlPanel();
+        }
+        
+        /**
+         * 미리보기 기능: 미리보기 모달을 띄워 사용자에게 트리에 집중하게 합니다.
+         */
+        function handlePreview() {
+             previewModal.classList.remove('hidden');
+        }
+
+        function initializeApp() {
+            // 트리 모양 선택 버튼 연결 (모달)
+            document.querySelectorAll('.shape-select-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const shape = e.target.getAttribute('data-shape');
+                    setTreeShape(shape);
+                });
+            });
+            
+            // 트리 영역 클릭 시 선택 해제 (빈 공간 클릭)
+            leafsArea.addEventListener('click', (e) => {
+                if (e.target.id === 'leafs-area' && selectedOrnamentId !== null) {
+                    handleOrnamentClick(selectedOrnamentId); 
+                }
+            });
+            
+            // 리셋/완성 버튼 연결
+            resetButton.addEventListener('click', resetApp);
+            completeButton.addEventListener('click', handlePreview); // 미리보기 기능 연결
+
+            // **크기 슬라이더 이벤트 연결**
+            sizeSlider.addEventListener('input', (e) => {
+                sizeDisplay.textContent = e.target.value;
+                applySizeChange(e.target.value);
+            });
+            
+            // 초기 상태 설정
+            resetApp(); 
+        }
+
+        window.onload = initializeApp;
     </script>
 </body>
 </html>
