@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>크리스마스 트리 디자인 스튜디오</title>
+    <title>크리스마스 트리 디자인 스튜디오 </title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* 배경 및 기본 레이아웃 스타일 */
+        /* Custom CSS: 배경 및 기본 레이아웃 스타일 */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #10113C; /* Dark Blue Christmas Background */
@@ -17,10 +18,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 1.5rem;
+            padding: 1.5rem; /* p-6 */
+            transition: all 0.5s;
         }
 
-        /* 트리가 배치될 영역 */
+        /* Tree Container Styles - 트리가 배치될 영역 */
         .tree-shape-container {
             position: relative;
             width: 300px;
@@ -29,18 +31,31 @@
             z-index: 1;
         }
         
-        /* 장식품 위치할 영역 */
+        /* Tree Leaves Area Styles - 실제 장식품이 위치할 영역 */
         .tree-leafs {
             position: relative;
             width: 100%;
             height: 85%; 
-            background-color: #16a34a; 
+            background-color: #16a34a; /* Green Tree */
             border-radius: 0 0 10% 10%;
             box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
+            /* 기본 삼각형 모양 (CSS 변형) */
             clip-path: polygon(50% 0%, 100% 100%, 0% 100%); 
+            transition: clip-path 0.3s ease-in-out, border-radius 0.3s ease-in-out;
+        }
+        
+        /* Shape-specific CSS (Tree) */
+        .tree-shape-triangle .tree-leafs {
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%); 
+            border-radius: 0 0 10% 10%;
         }
 
-        /* 별 위치 */
+        .tree-shape-circle .tree-leafs {
+            clip-path: none;
+            border-radius: 50% 50% 10% 10% / 60% 60% 10% 10%; 
+        }
+
+        /* Star Positioning */
         .tree-star {
             position: absolute;
             top: 20px; 
@@ -51,18 +66,18 @@
             pointer-events: none; 
         }
 
-        /* 나무 밑둥 모양 */
+        /* Tree Trunk Styles */
         .tree-trunk {
             width: 20%;
             height: 15%; 
-            background-color: #78350f; 
+            background-color: #78350f; /* Brown Trunk */
             border-radius: 0 0 5px 5px;
             margin: 0 auto;
         }
 
-        /* 버튼 모양 */
+        /* Control Panel/Modal Background */
         .control-bg {
-            background-color: #1e293b; 
+            background-color: #1e293b; /* Slate-700 equivalent */
         }
 
         /* Modal Styles */
@@ -70,21 +85,34 @@
             z-index: 50; 
             background-color: rgba(16, 17, 60, 0.9); 
         }
-
-        /* Ornament Styles Placeholder (추후 JS에서 동적으로 적용) */
+        
+        /* Ornament Styles - 장식품 스타일 */
         .ornament {
             position: absolute;
-            border-radius: 50%; 
+            border-radius: 50%; /* 기본 원형 */
             cursor: pointer; 
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            transition: all 0.1s ease-out;
+            border: 2px solid transparent; /* 선택 시 테두리 */
+            /* 크기 및 색상 기본값 */
+            width: 20px; 
+            height: 20px;
+            background-color: #FFD700; /* Gold */
         }
+
+        /* Ornament Selected State */
+        .ornament.selected {
+            border: 2px solid #fff; /* White highlight */
+            transform: scale(1.2);
+            z-index: 10;
+        }
+
     </style>
 </head>
 <body class="p-6">
 
     <!-- Reset Button (초기에는 숨김) -->
-    <button id="reset-button" class="fixed top-4 right-4 z-40 px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-full shadow-lg transition hidden">
+    <button id="reset-button" class="fixed top-4 right-4 z-40 px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-full shadow-lg transition hidden hover:bg-yellow-400">
         🔄 다시 하기
     </button>
 
@@ -93,7 +121,7 @@
         <h1 class="text-4xl font-extrabold text-green-400">
             🎄 크리스마스 트리 디자인 스튜디오 🎄
         </h1>
-        <p class="text-gray-400 mt-2">트리 모양을 선택하여 나만의 장식을 완성해보세요!</p>
+        <p class="text-gray-400 mt-2">트리 모양을 선택하여 장식품을 추가/삭제해보세요!</p>
     </header>
 
     <!-- Main Layout: Tree Area + Control Panel -->
@@ -102,9 +130,10 @@
         <!-- 1. Tree Area (트리 디자인이 표시될 영역) -->
         <div id="tree-section" class="flex-shrink-0 w-full lg:w-1/2 flex flex-col items-center">
             <div id="tree-container-wrapper" class="w-full h-full flex justify-center items-center">
-                <div id="tree-container" class="tree-shape-container tree-shape-triangle"> 
+                <div id="tree-container" class="tree-shape-container"> 
                     <div class="tree-star">⭐</div>
                     <div id="leafs-area" class="tree-leafs">
+                        <!-- 장식품이 여기에 동적으로 렌더링될 예정 -->
                     </div>
                     <div class="tree-trunk"></div>
                 </div>
@@ -113,55 +142,43 @@
 
         <!-- 2. Control Panel (장식품 속성을 제어하는 패널) -->
         <div id="control-panel" class="w-full lg:w-1/2 p-6 control-bg rounded-xl shadow-2xl space-y-6">
-            <h2 id="panel-title" class="text-2xl font-bold text-red-400 mb-4 border-b border-gray-700 pb-2">장식품 속성 제어</h2>
+            <h2 id="panel-title" class="text-2xl font-bold text-red-400 mb-4 border-b border-gray-700 pb-2">장식품 제어</h2>
             
             <p id="status-message" class="text-sm text-center text-gray-400 mt-4">
                 트리 모양 선택 후 장식품을 추가/선택할 수 있습니다.
             </p>
 
             <!-- 장식품 추가 버튼 -->
-            <button id="add-ornament-button" class="w-full py-2 bg-purple-600 text-white font-bold rounded-lg shadow-md disabled:bg-gray-600">
+            <button id="add-ornament-button" class="w-full py-3 bg-purple-600 text-white text-lg font-bold rounded-lg shadow-md disabled:bg-gray-600 hover:bg-purple-500 transition" disabled>
                 ➕ 새 장식품 추가
             </button>
             
             <!-- 장식품 삭제 버튼 -->
-            <button id="delete-ornament-button" class="w-full py-2 bg-red-700 text-white font-bold rounded-lg shadow-md disabled:bg-gray-600">
+            <button id="delete-ornament-button" class="w-full py-3 bg-red-700 text-white text-lg font-bold rounded-lg shadow-md disabled:bg-gray-600 hover:bg-red-600 transition" disabled>
                 ❌ 선택 장식품 삭제
             </button>
 
-            <!-- 색상 변경 섹션 -->
-            <div class="space-y-4 border-t border-gray-700 pt-4">
-                <h3 class="text-xl font-semibold text-gray-300">색상 변경</h3>
-                <div id="color-inputs" class="flex justify-center items-center gap-4 p-4 border border-gray-700 rounded-lg control-bg">
-                    <input type="color" id="native-color-input" class="native-color-picker" value="#ffffff" disabled>
-                    <input type="text" id="hex-color-input" class="px-2 py-1 rounded w-32 text-gray-900 bg-gray-200 font-bold" value="#FFFFFF" placeholder="#FFFFFF" disabled>
-                </div>
-                <div class="flex flex-wrap justify-center gap-2" id="preset-colors">
-                </div>
+            <!-- 기능 제외 섹션: 색상 -->
+            <div class="space-y-4 border-t border-gray-700 pt-4 opacity-50 pointer-events-none">
+                <h3 class="text-xl font-semibold text-gray-300"></h3>
+                <div class="text-center text-sm text-gray-500"></div>
             </div>
 
-            <!-- 크기 변경 섹션 -->
-            <div class="space-y-4 border-t border-gray-700 pt-4">
-                <h3 class="text-xl font-semibold text-gray-300">크기 변경</h3>
-                <div class="flex items-center gap-4 p-4 border border-gray-700 rounded-lg control-bg">
-                    <span id="size-display" class="w-10 text-center font-bold text-yellow-400">25</span>
-                    <input type="range" id="size-slider" min="20" max="60" value="25" disabled class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                </div>
+            <!-- 기능 제외 섹션: 크기 -->
+            <div class="space-y-4 border-t border-gray-700 pt-4 opacity-50 pointer-events-none">
+                <h3 class="text-xl font-semibold text-gray-300"></h3>
+                <div class="text-center text-sm text-gray-500"></div>
             </div>
 
-            <!-- 모양 변경 섹션 -->
-            <div class="space-y-4 border-t border-gray-700 pt-4">
-                <h3 class="text-xl font-semibold text-gray-300">모양 변경</h3>
-                <div id="shape-controls" class="flex justify-center gap-4">
-                    <button data-shape="circle" class="shape-button flex-1 py-2 bg-blue-600 text-white font-bold rounded-lg disabled:bg-gray-600">원형 (●)</button>
-                    <button data-shape="square" class="shape-button flex-1 py-2 bg-blue-600 text-white font-bold rounded-lg disabled:bg-gray-600">사각형 (■)</button>
-                    <button data-shape="diamond" class="shape-button flex-1 py-2 bg-blue-600 text-white font-bold rounded-lg disabled:bg-gray-600">마름모 (◆)</button>
-                </div>
+            <!-- 기능 제외 섹션: 모양 -->
+            <div class="space-y-4 border-t border-gray-700 pt-4 opacity-50 pointer-events-none">
+                <h3 class="text-xl font-semibold text-gray-300"></h3>
+                <div class="text-center text-sm text-gray-500"></div>
             </div>
 
-            <!-- 완성 버튼 -->
+            <!-- 완성 버튼 (현재는 비활성화된 상태 유지) -->
             <div class="border-t border-gray-700 pt-6">
-                <button id="complete-button" class="w-full py-3 bg-red-600 text-white text-xl font-extrabold rounded-lg shadow-xl disabled:opacity-50">
+                <button id="complete-button" class="w-full py-3 bg-green-700 text-white text-xl font-extrabold rounded-lg shadow-xl disabled:opacity-50 hover:bg-green-600 transition" disabled>
                     ✔️ 완성했어요!
                 </button>
             </div>
@@ -198,13 +215,258 @@
         </div>
     </div>
 
+    <!-- JavaScript: 장식품 관리 로직 -->
     <script>
+        // --- 1. State and Initial Data ---
+        let isTreeSelected = false; 
+        let ornaments = []; // {id: string, x: number, y: number} 객체의 배열
+        let selectedOrnamentId = null; 
+        
+        // --- 2. DOM References ---
+        const treeContainer = document.getElementById('tree-container');
+        const leafsArea = document.getElementById('leafs-area');
+        const shapeModal = document.getElementById('shape-modal');
+        const resetButton = document.getElementById('reset-button');
+        const addButton = document.getElementById('add-ornament-button');
+        const deleteButton = document.getElementById('delete-ornament-button');
+        
+        // 장식품 추가/삭제 버튼만 활성화 제어 대상에 포함
+        const controlElements = [
+            addButton,
+            deleteButton,
+            document.getElementById('complete-button'),
+        ];
+        
+        // --- 3. Utility Functions ---
 
-        document.querySelectorAll('.shape-select-button').forEach(button => {
-            button.addEventListener('click', () => {
-                alert('기능 아직 추가 안함');
+        /**
+         * 0과 max 사이의 랜덤 정수를 반환합니다.
+         */
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        /**
+         * 트리 영역 내부에 무작위 좌표를 생성합니다.
+         * 장식품이 트리의 경계 내에 위치하도록 보정합니다.
+         * @param {string} treeShape - 현재 트리의 모양 ('triangle' 또는 'circle')
+         * @returns {{x: number, y: number}} x, y 좌표 (0-100% 기준)
+         */
+        function getRandomPositionInTree(treeShape) {
+            const ornamentSize = 20; // 장식품 크기 (px, CSS에서 정의됨)
+            const margin = ornamentSize / 2; // 중앙을 기준으로 하므로 반지름만큼의 마진
+
+            let x, y, isInside = false;
+            let attempts = 0;
+
+            // 최대 50번 시도하여 유효한 위치를 찾습니다.
+            while (!isInside && attempts < 50) {
+                // x, y를 0부터 100까지의 백분율로 무작위 생성
+                x = getRandomInt(100);
+                y = getRandomInt(100);
+
+                // y축 경계: 트리가 85% 높이를 차지하므로, y가 85%를 넘지 않도록 합니다.
+                if (y > 85) {
+                    attempts++;
+                    continue;
+                }
+
+                // x축 경계: 장식품의 중앙이 트리의 좌우 너비 내에 있어야 합니다.
+                // 이 예제에서는 간단화를 위해 10% ~ 90% 사이로 제한합니다.
+                if (x < 10 || x > 90) {
+                    attempts++;
+                    continue;
+                }
+
+                // 삼각형 모양의 경우, 상단 뾰족한 부분의 영역 제한
+                if (treeShape === 'triangle') {
+                    // Y가 높을수록 X 범위가 넓어집니다.
+                    // Y=0 (최상단)일 때 X는 50% 근처여야 하고, Y=85 (최하단)일 때 X는 0%~100%입니다.
+                    const yNormalized = y / 85; // 0.0 ~ 1.0
+                    const maxXOffset = 50 * yNormalized; // 0% ~ 50%
+                    const minX = 50 - maxXOffset;
+                    const maxX = 50 + maxXOffset;
+
+                    if (x >= minX && x <= maxX) {
+                        isInside = true;
+                    }
+                } else if (treeShape === 'circle') {
+           
+                    isInside = true; 
+                }
+                
+                attempts++;
+            }
+            
+            // 유효한 위치를 찾지 못했으면 중앙 근처를 반환
+            if (!isInside) {
+                return { x: 50, y: 50 };
+            }
+
+            // CSS의 left/top 속성으로 사용하기 위해 백분율 값을 반환
+            return { x: x, y: y };
+        }
+
+        /**
+         * 장식품 배열을 기반으로 HTML 요소를 렌더링합니다.
+         */
+        function renderOrnaments() {
+            // 기존 장식품 제거
+            leafsArea.innerHTML = ''; 
+
+            // 새 장식품 렌더링
+            ornaments.forEach(ornament => {
+                const el = document.createElement('div');
+                el.className = 'ornament';
+                el.style.left = `${ornament.x}%`;
+                el.style.top = `${ornament.y}%`;
+                el.id = `ornament-${ornament.id}`; // DOM ID 설정
+                
+                // 선택된 장식품이면 'selected' 클래스 추가
+                if (ornament.id === selectedOrnamentId) {
+                    el.classList.add('selected');
+                }
+
+                // 클릭 리스너 연결
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 트리의 클릭 이벤트 방지
+                    selectOrnament(ornament.id);
+                });
+
+                leafsArea.appendChild(el);
             });
-        });
+
+            // 컨트롤 패널 상태 업데이트
+            updateControlPanel();
+        }
+
+        // --- 4. Main Logic Functions ---
+
+        /**
+         * 장식품을 선택 상태로 설정하고 UI를 업데이트합니다.
+         */
+        function selectOrnament(id) {
+            // 이미 선택된 장식품을 다시 클릭하면 선택 해제
+            if (selectedOrnamentId === id) {
+                selectedOrnamentId = null;
+            } else {
+                selectedOrnamentId = id;
+            }
+            renderOrnaments(); // UI 업데이트를 위해 렌더링 다시 호출
+        }
+
+        /**
+         * 새로운 장식품을 랜덤 위치에 추가합니다.
+         */
+        function addRandomOrnament() {
+            if (!isTreeSelected) return;
+
+            const treeShape = treeContainer.classList.contains('tree-shape-triangle') ? 'triangle' : 'circle';
+            const position = getRandomPositionInTree(treeShape);
+            
+            // 장식품 객체 생성 (기본 속성)
+            const newOrnament = {
+                id: crypto.randomUUID(),
+                x: position.x,
+                y: position.y,
+                          };
+
+            ornaments.push(newOrnament);
+            selectedOrnamentId = newOrnament.id; // 새로 추가된 장식품을 자동 선택
+            renderOrnaments();
+        }
+
+        /**
+         * 선택된 장식품을 배열에서 제거하고 UI를 업데이트합니다.
+         */
+        function deleteSelectedOrnament() {
+            if (selectedOrnamentId === null) return;
+
+            // 선택된 ID와 일치하지 않는 요소만 남기고 배열을 필터링
+            ornaments = ornaments.filter(ornament => ornament.id !== selectedOrnamentId);
+            
+            selectedOrnamentId = null; // 선택 해제
+            renderOrnaments();
+        }
+
+        /**
+         * 트리 모양을 설정하고 초기 장식품을 배치합니다.
+         * @param {string} shape - 'triangle' 또는 'circle'
+         */
+        function setTreeShape(shape) {
+            // 트리 모양 클래스 추가/변경 (CSS를 통해 모양 변경)
+            treeContainer.classList.remove('tree-shape-triangle', 'tree-shape-circle');
+            treeContainer.classList.add(`tree-shape-${shape}`);
+            
+            // 모달 숨기기 및 리셋 버튼 표시
+            shapeModal.classList.add('hidden');
+            resetButton.classList.remove('hidden'); 
+            isTreeSelected = true;
+
+            // 초기 랜덤 장식품 5개 배치
+            ornaments = [];
+            for (let i = 0; i < 5; i++) {
+                addRandomOrnament();
+            }
+            selectedOrnamentId = null; // 초기 배치 후에는 선택 해제
+
+            // 컨트롤 패널 상태 업데이트
+            updateControlPanel();
+            renderOrnaments();
+        }
+
+        /**
+         * 컨트롤 패널의 입력 필드 및 버튼 활성화/비활성화를 관리하고 상태 메시지를 업데이트합니다.
+         */
+        function updateControlPanel() { 
+            // isTreeSelected 상태에 따라 컨트롤 활성화/비활성화
+            controlElements.forEach(el => {
+                el.disabled = !isTreeSelected;
+            });
+            
+            // 장식품 삭제 버튼은 장식품이 선택된 경우에만 활성화
+            deleteButton.disabled = !isTreeSelected || selectedOrnamentId === null;
+
+            const statusMessage = document.getElementById('status-message');
+            if (isTreeSelected) {
+                 statusMessage.textContent = `총 장식품: ${ornaments.length}개. ${selectedOrnamentId ? '선택된 장식품 ID: ' + selectedOrnamentId.substring(0, 8) + '...' : '장식품을 클릭하여 선택/삭제하세요.'}`;
+            } else {
+                 statusMessage.textContent = '트리 모양 선택 후 장식품을 추가/선택할 수 있습니다.';
+            }
+        }
+        
+        // --- 5. Initialization ---
+        function initializeApp() {
+            // 1. 트리 모양 선택 버튼 연결 (모달)
+            document.querySelectorAll('.shape-select-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const shape = e.target.getAttribute('data-shape');
+                    setTreeShape(shape);
+                });
+            });
+            
+            // 2. 장식품 추가/삭제 버튼 연결
+            addButton.addEventListener('click', addRandomOrnament);
+            deleteButton.addEventListener('click', deleteSelectedOrnament);
+
+            // 3. 트리 영역 클릭 시 선택 해제 (버블링 이용)
+            leafsArea.addEventListener('click', (e) => {
+                // 트리의 빈 공간을 클릭했을 때만 선택 해제
+                if (e.target.id === 'leafs-area') {
+                    selectOrnament(selectedOrnamentId); // 이미 선택된 ID를 다시 호출하면 해제됨
+                }
+            });
+            
+            // 4. 리셋 버튼 연결 (페이지 새로고침)
+            resetButton.addEventListener('click', () => {
+                window.location.reload();
+            });
+
+            // 5. 초기 컨트롤 패널 상태 업데이트 (모양 선택 전 비활성화 상태)
+            updateControlPanel();
+        }
+
+        window.onload = initializeApp;
     </script>
 </body>
 </html>
