@@ -3,57 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>크리스마스 트리 디자인 스튜디오 </title>
+    <title>크리스마스 트리 디자인 스튜디오</title>
+    
+    <link rel="icon" type="image/png" href="image/santa_hat.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* 기본 레이아웃 및 배경 */
+        /* [14차 커밋] 사용자 지정 배경색 및 레이아웃 설정 */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #10113C;
+            background-color: #10113C; /* 짙은 남색 */
             min-height: 100vh;
             color: #e2e8f0; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 1.5rem; 
             transition: all 0.5s;
         }
 
-        /* 트리 컨테이너 */
+        /* 메인 컨테이너 (트리 + 컨트롤 패널) */
+        #main-layout {
+            transition: all 0.5s ease-in-out;
+        }
+
+        /* 트리 모양 컨테이너 */
         .tree-shape-container {
             position: relative;
             width: 300px;
-            height: 400px; 
+            height: 400px; /* 전체 높이 고정 */
             margin: 0 auto;
-            z-index: 1; /* ✅ 모달보다 낮게 설정하여 가림 문제 해결 */
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center center;
+            z-index: 1;
         }
         
-        /* 트리 잎사귀 영역 */
+        /* 나뭇잎 영역 */
         .tree-leafs {
             position: relative;
             width: 100%;
-            height: 85%; 
+            height: 85%; /* 85% 할당 */
             background-color: #16a34a;
             border-radius: 0 0 10% 10%;
             box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
-            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
             transition: clip-path 0.3s ease-in-out, border-radius 0.3s ease-in-out;
-            overflow: hidden;
-        }
-        
-        /* 모양별 CSS */
-        .tree-shape-triangle .tree-leafs {
-            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-        }
-        .tree-shape-circle .tree-leafs {
-            clip-path: none;
-            border-radius: 50% 50% 10% 10% / 60% 60% 10% 10%;
         }
 
+        /* 별 위치 조정 */
         .tree-star {
             position: absolute;
             top: 20px; 
@@ -64,186 +58,187 @@
             pointer-events: none;
         }
 
+        /* 삼각형 트리 */
+        .tree-shape-triangle .tree-leafs {
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+        }
+
+        /* 원형/둥근 트리 */
+        .tree-shape-circle .tree-leafs {
+            clip-path: none;
+            border-radius: 50% 50% 10% 10% / 60% 60% 10% 10%;
+        }
+        
+        /* 나무 밑동 스타일 */
         .tree-trunk {
             width: 20%;
             height: 15%; 
-            background-color: #78350f; 
+            background-color: #78350f; /* Brown */
             border-radius: 0 0 5px 5px;
             margin: 0 auto;
         }
 
-        /* 컨트롤 패널 배경 */
-        .control-bg {
-            background-color: #1e293b;
-        }
-
-        /* 장식품 기본 스타일 */
+        /* 장식품 스타일 */
         .ornament {
             position: absolute;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); 
-            border: 2px solid transparent; 
-            cursor: pointer; 
-            transition: all 0.1s ease-out; 
+            min-width: 20px;
+            min-height: 20px;
+            max-width: 60px;
+            max-height: 60px;
+            transition: box-shadow 0.2s ease, border 0.2s ease, transform 0.1s;
             z-index: 10;
-        }
-
-        /* 장식품 모양별 스타일 */
-        .ornament.shape-circle {
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            touch-action: none; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             border-radius: 50%;
+            cursor: pointer; 
         }
-        .ornament.shape-square {
-            border-radius: 5px; 
-            transform: rotate(45deg); 
-        }
-        .ornament.shape-star {
-            border-radius: 50%;
-            box-shadow: 0 0 10px 3px var(--ornament-color, white), 0 2px 4px rgba(0, 0, 0, 0.5); 
+        .shape-square { border-radius: 5px; }
+        .shape-diamond { transform: rotate(45deg); border-radius: 5px; } 
+        
+        .ornament.selected {
+            box-shadow: 0 0 0 4px #38bdf8, 0 0 10px rgba(56, 189, 248, 0.8);
+            border: 2px solid #ffffff;
+            z-index: 15; 
+            cursor: grab;
         }
         
-        /* 장식품 강조/선택 (Emphasis) - ✅ 빨간 테두리 제거 */
-        .ornament.selected {
-            border: 2px solid transparent; 
-            box-shadow: 0 0 15px 5px rgba(255, 255, 0, 0.9); /* 강한 노란색 강조 그림자 */
-            z-index: 100 !important; 
-            transform: scale(1.05); 
-        }
+        /* [13차 커밋 스타일 반영] 드래그 중일 때 */
         .ornament.dragging {
             cursor: grabbing;
             transform: scale(1.1); 
         }
 
-        /* 모달 스타일 */
-        #shape-modal { 
-            z-index: 1000; 
+        /* 완료 모드 시 커서 변경 및 상호작용 방지 */
+        .completed-mode .ornament {
+            cursor: default !important;
+            pointer-events: none; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* 컨트롤 패널/모달 배경 설정 */
+        .control-bg {
+            background-color: #1e293b;
+        }
+
+        /* 색상 입력 필드 가독성 개선 */
+        #hex-color-input {
+            color: #1f2937;
+            background-color: #f3f4f6;
+            font-weight: bold;
+        }
+
+        /* 완료 메시지 스타일 */
+        #complete-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-color: rgba(0, 0, 0, 0.8); 
-        }
-
-        /* === 완성 애니메이션 관련 CSS === */
-        
-        .completed #main-layout, 
-        .completed #main-header {
-            opacity: 0; 
-            pointer-events: none;
-            visibility: hidden;
-            transition: opacity 0.5s ease-in-out, visibility 0s 0.5s;
-        }
-        
-        #complete-screen {
-            z-index: 2000; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(0);
             opacity: 0;
-            pointer-events: none;
-            flex-direction: column; /* 세로로 트리와 텍스트를 배치 */
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.4s ease-out;
+            z-index: 100;
         }
-        #complete-screen.visible {
+        #complete-message.show {
+            transform: scale(1);
             opacity: 1;
-            pointer-events: auto;
         }
 
-        /* 완성된 트리 컨테이너 */
-        #completed-tree-placeholder {
-            transition: transform 1s ease-in-out;
-            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
-            z-index: 10; 
-        }
-        #completed-tree-placeholder.expanded {
-            transform: scale(1.6); /* ✅ 확대 효과 */
-            filter: drop-shadow(0 0 15px rgba(255, 255, 0, 0.9)); 
+        /* 완료 상태에서 트리 섹션 중앙 배치 */
+        .completed-layout {
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* ✅ 메리크리스마스 텍스트 스타일 (나무 밑둥 아래 배치) */
-        #merry-christmas-text {
-            font-family: 'Nanum Pen Script', cursive; /* 필기체 폰트 */
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 0, 0.8);
-            letter-spacing: 5px;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out 1s; 
-            position: relative;
-            z-index: 20; 
-            margin-top: 50px; /* 트리와 텍스트 사이 간격 */
-        }
-        #complete-screen.visible #merry-christmas-text {
-            opacity: 1;
+        /* 모달 Z-index 조정 */
+        #shape-modal {
+            z-index: 50;
+            background-color: rgba(16, 17, 60, 0.9); 
         }
     </style>
 </head>
-<body class="p-6">
+<body class="p-4 sm:p-8 flex flex-col items-center">
 
-    <button id="reset-button" class="fixed top-4 right-4 z-40 px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-full shadow-lg transition hidden hover:bg-yellow-400">
+    <button id="reset-button" class="fixed top-4 right-4 z-40 px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-full shadow-lg hover:bg-yellow-400 transition" style="display: none;">
         🔄 다시 하기
     </button>
 
-    <header id="main-header" class="text-center mb-8 w-full max-w-5xl">
+    <header id="main-header" class="text-center mb-8 w-full">
         <h1 class="text-4xl font-extrabold text-green-400">
             🎄 크리스마스 트리 디자인 스튜디오 🎄
         </h1>
-        <p class="text-gray-400 mt-2">트리를 꾸밀 장식품들을 추가, 이동, 편집해보세요!</p>
+        
+        <p class="text-gray-400 mt-2">트리 모양을 선택하여 나만의 장식을 완성해보세요!</p>
     </header>
 
     <div id="main-layout" class="flex flex-col lg:flex-row gap-10 w-full max-w-5xl">
-        
-        <div id="tree-section" class="flex-shrink-0 w-full lg:w-1/2 flex flex-col items-center">
-        
+        <div id="tree-section" class="flex-shrink-0 w-full lg:w-1/2 flex flex-col items-center transition-all duration-500">
             <div id="tree-container-wrapper" class="w-full h-full flex justify-center items-center">
-                <div id="tree-container" class="tree-shape-container tree-shape-triangle"> 
+                <div id="tree-container" class="tree-shape-container"> 
                     <div class="tree-star">⭐</div>
                     <div id="leafs-area" class="tree-leafs">
-                        </div>
+                    </div>
                     <div class="tree-trunk"></div>
                 </div>
             </div>
         </div>
 
         <div id="control-panel" class="w-full lg:w-1/2 p-6 control-bg rounded-xl shadow-2xl space-y-6">
-            <h2 class="text-2xl font-bold text-red-400 mb-4 border-b border-gray-700 pb-2">장식품 제어</h2>
+            <h2 id="panel-title" class="text-2xl font-bold text-red-400 mb-4 border-b border-gray-700 pb-2">장식품을 선택해주세요</h2>
             
             <p id="status-message" class="text-sm text-center text-gray-400 mt-4">
-                트리 모양 선택 후 장식품을 추가/선택하여 편집할 수 있습니다.
+                클릭 후 드래그하여 위치를 옮길 수 있습니다.
             </p>
 
-            <div class="flex gap-4 border-t border-gray-700 pt-4">
-                <button id="add-button" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition disabled:opacity-50" disabled>
-                    ➕ 장식품 추가
-                </button>
-                <button id="delete-button" class="flex-1 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-500 transition disabled:opacity-50" disabled>
-                    🗑️ 선택 삭제
-                </button>
+            <button id="add-ornament-button" class="w-full py-2 bg-purple-600 text-white font-bold rounded-lg shadow-md hover:bg-purple-500 transition">
+                ➕ 새 장식품 추가
+            </button>
+
+            <button id="delete-ornament-button" class="w-full py-2 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-500 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                🗑️ 선택한 장식 삭제
+            </button>
+
+            <div class="space-y-4 border-t border-gray-700 pt-4">
+                <h3 class="text-xl font-semibold text-gray-300">색상 변경</h3>
+                <div id="color-inputs" class="flex justify-center items-center gap-4 p-4 border border-gray-700 rounded-lg control-bg">
+                    <input type="color" id="native-color-input" class="native-color-picker" value="#ffffff" disabled>
+                    <input type="text" id="hex-color-input" class="px-2 py-1 rounded w-32 text-gray-900 bg-gray-200 font-bold" value="#FFFFFF" placeholder="#FFFFFF" disabled>
+                </div>
+                <div class="flex flex-wrap justify-center gap-2" id="preset-colors"></div>
             </div>
 
-
-            <div id="property-controls" class="space-y-4 border-t border-gray-700 pt-4 opacity-50 pointer-events-none transition duration-300">
-                <h3 class="text-xl font-semibold text-gray-300">선택된 장식품 속성</h3>
-                
-                <div>
-                    <label for="hex-color-input" class="block text-gray-400 mb-2">색상 (HEX):</label>
-                    <div class="flex gap-2">
-                         <input type="color" id="color-picker" value="#FFD700" class="w-12 h-10 border-none rounded-md cursor-pointer">
-                         <input type="text" id="hex-color-input" value="#FFD700" maxlength="7" class="flex-1 p-2 bg-gray-700 rounded-lg text-white font-mono text-lg uppercase">
-                    </div>
-                </div>
-                
-                <div>
-                    <label for="size-slider" class="block text-gray-400 mb-2">크기: <span id="size-display">20</span>px</label>
-                    <input type="range" id="size-slider" min="20" max="60" value="20" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                </div>
-
-                 <div id="shape-controls">
-                    <label class="block text-gray-400 mb-2">모양:</label>
-                    <div class="flex gap-2">
-                        <button data-shape="circle" class="ornament-shape-button flex-1 py-2 text-xl rounded-lg bg-gray-700 hover:bg-gray-600 transition disabled:opacity-50" disabled>
-                            🟢 원형
-                        </button>
-                        <button data-shape="square" class="ornament-shape-button flex-1 py-2 text-xl rounded-lg bg-gray-700 hover:bg-gray-600 transition disabled:opacity-50" disabled>
-                            🟨 사각형
-                        </button>
-                        <button data-shape="star" class="ornament-shape-button flex-1 py-2 text-xl rounded-lg bg-gray-700 hover:bg-gray-600 transition disabled:opacity-50" disabled>
-                            ✨ 별 모양
-                        </button>
-                    </div>
+            <div class="space-y-4 border-t border-gray-700 pt-4">
+                <h3 class="text-xl font-semibold text-gray-300">크기 변경</h3>
+                <div class="flex items-center gap-4 p-4 border border-gray-700 rounded-lg control-bg">
+                    <span id="size-display" class="w-10 text-center font-bold text-yellow-400">25</span>
+                    <input type="range" id="size-slider" min="20" max="60" value="25" disabled class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
                 </div>
             </div>
-            
+
+            <div class="space-y-4 border-t border-gray-700 pt-4">
+                <h3 class="text-xl font-semibold text-gray-300">모양 변경</h3>
+                <div id="shape-controls" class="flex justify-center gap-4">
+                    <button data-shape="circle" class="shape-button px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 disabled:bg-gray-600 transition">
+                        원형 (●)
+                    </button>
+                    <button data-shape="square" class="shape-button px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 disabled:bg-gray-600 transition">
+                        사각형 (■)
+                    </button>
+                    <button data-shape="diamond" class="shape-button px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 disabled:bg-gray-600 transition">
+                        마름모 (◆)
+                    </button>
+                </div>
+            </div>
+
             <div class="border-t border-gray-700 pt-6">
-                <button id="complete-button" class="w-full py-3 bg-green-700 text-white text-xl font-extrabold rounded-lg shadow-xl disabled:opacity-50 hover:bg-green-600 transition" disabled>
+                <button id="complete-button" class="w-full py-3 bg-red-600 text-white text-xl font-extrabold rounded-lg shadow-xl hover:bg-red-500 transition">
                     ✔️ 완성했어요!
                 </button>
             </div>
@@ -251,9 +246,10 @@
     </div>
 
     <div id="shape-modal" class="modal fixed inset-0 flex items-center justify-center p-4">
-        <div class="modal-content p-8 rounded-xl w-full max-w-md text-center space-y-6 control-bg shadow-2xl relative z-1001">
+        <div class="modal-content p-8 rounded-xl w-full max-w-md text-center space-y-6 control-bg shadow-2xl">
             <h3 class="text-3xl font-extrabold text-green-400">트리 모양을 선택해주세요</h3>
-            <p class="text-gray-300">선택 후 장식품을 추가하고 편집할 수 있습니다.</p>
+            <p class="text-gray-300">선택 후 장식품을 추가/편집할 수 있습니다.</p>
+            
             <div class="flex justify-around gap-4">
                 <button data-shape="triangle" class="shape-select-button flex-1 py-4 bg-green-700 text-white font-bold rounded-lg hover:bg-green-600 transition shadow-lg">
                     삼각형 트리 (▲)
@@ -265,279 +261,305 @@
         </div>
     </div>
 
-    <div id="complete-screen" class="fixed inset-0 flex items-center justify-center p-4 transition-opacity duration-500 bg-black bg-opacity-70 opacity-0 pointer-events-none">
-        
-        <div id="completed-tree-placeholder" class="transform scale-100">
-            </div>
+    <div id="complete-message">
+        <div id="complete-image-wrapper" class="w-full max-w-lg sm:max-w-xl md:max-w-2xl h-auto shadow-2xl rounded-lg border-4 border-white overflow-hidden">
+            <img id="complete-image" 
+             src="image/completed_tree.png"
+                 alt="" 
+                 class="w-full h-full object-cover">
+        </div>
+    </div>
 
-        <h3 id="merry-christmas-text" class="text-7xl md:text-8xl font-extrabold text-yellow-400">
-            메리크리스마스!
-        </h3>
-
-         <button onclick="resetApp()" class="absolute top-4 right-4 px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-full shadow-lg hover:bg-yellow-400">
-             🔄 다시 시작
-         </button>
+    <div class="fixed bottom-2 left-2 text-[10px] text-gray-500 font-sans z-0 pointer-events-none text-left opacity-70">
+        <p>Copyright (C) 2025, hanyang univ. class of 2025 College of Advanced Technology and Convergence - bio team 2</p>
+        <p class="mt-0.5">
+            coded by Google Gemini 3 pro, 
+            <a href="https://github.com/CADIS57/open-source-bio-team-2" target="_blank" class="hover:text-gray-300 pointer-events-auto underline">
+                https://github.com/CADIS57/open-source-bio-team-2
+            </a>
+        </p>
     </div>
 
     <script>
-        // --- 1. 상태 및 초기 설정 ---
-        let isTreeSelected = false;
-        let ornaments = []; 
-        let selectedOrnamentId = null;
-        let activeOrnament = null;
-        let nextOrnamentId = 1;
+        // --- 1. 상태 및 초기 데이터 ---
         
-        // 드래그 상태 관리
+        const INITIAL_ORNAMENTS = 5;
+        const PRESET_COLORS = ['#FF0000', '#FFA500', '#FFFF00', '#008000', '#0000FF', '#4B0082', '#EE82EE', '#FFFFFF'];
+        // [13차 커밋에서 가져온 상수] 경계 계산을 위해 필요
+        const TREE_LEAF_HEIGHT_PERCENT = 85;
+        const CONTAINER_HEIGHT_PX = 400;
+
+        let ornaments = [];
+        let nextOrnamentId = 1;
+        let selectedOrnamentId = null;
+        let isCompletedMode = false;
+        // [13차 커밋의 드래그 관련 상태 변수]
         let isDragging = false;
-        let wasDragged = false; // 드래그 움직임이 있었는지 체크
+        let wasDragged = false;
         let draggedOrnament = null;
         let dragOffset = { x: 0, y: 0 };
-        
-        // 장식품 크기 설정 상수
-        const MIN_ORNAMENT_SIZE = 20; 
-        const MAX_ORNAMENT_SIZE = 60; 
-        const DEFAULT_ORNAMENT_SIZE = 20; 
-        const TREE_LEAF_HEIGHT_PERCENT = 85; 
-        const CONTAINER_HEIGHT_PX = 400; 
-        const PRESET_COLORS = ['#FF0000', '#0000FF', '#FFD700', '#00FF00', '#FFFFFF', '#FFA500'];
-
-
         // --- 2. DOM 요소 참조 ---
-        const treeContainer = document.getElementById('tree-container');
+        
         const leafsArea = document.getElementById('leafs-area');
-        const shapeModal = document.getElementById('shape-modal');
-        const resetButton = document.getElementById('reset-button');
+        const treeContainer = document.getElementById('tree-container');
+        const treeSection = document.getElementById('tree-section');
+        const mainLayout = document.getElementById('main-layout');
+        
+        const panelTitle = document.getElementById('panel-title');
+        const nativeColorInput = document.getElementById('native-color-input');
+        const hexColorInput = document.getElementById('hex-color-input');
+        const presetColorsContainer = document.getElementById('preset-colors');
         const statusMessage = document.getElementById('status-message');
+        
+        const shapeButtons = document.querySelectorAll('.shape-button');
+        const shapeModal = document.getElementById('shape-modal');
         const completeButton = document.getElementById('complete-button');
-        const addButton = document.getElementById('add-button');
-        const deleteButton = document.getElementById('delete-button');
-        const propertyControls = document.getElementById('property-controls');
+        const completeMessage = document.getElementById('complete-message');
+        const resetButton = document.getElementById('reset-button');
+        
+        const mainHeader = document.getElementById('main-header');
+        const controlPanel = document.getElementById('control-panel');
         const sizeSlider = document.getElementById('size-slider');
         const sizeDisplay = document.getElementById('size-display');
-        const colorPicker = document.getElementById('color-picker');
-        const hexColorInput = document.getElementById('hex-color-input');
-        const ornamentShapeButtons = document.querySelectorAll('.ornament-shape-button'); 
-        const completeScreen = document.getElementById('complete-screen');
-        const completedTreePlaceholder = document.getElementById('completed-tree-placeholder');
-
-        // --- 3. 유틸리티 함수 ---
         
-        function getRandomPositionInTree(treeShape, width, height) {
-            let x, y, isInside = false;
-            let attempts = 0;
-            const size = DEFAULT_ORNAMENT_SIZE;
-            const halfSize = size / 2;
-            const treeLeafHeightPx = height * (TREE_LEAF_HEIGHT_PERCENT / 100);
-
-            while (!isInside && attempts < 100) { 
-                x = Math.random() * (width - size) + halfSize; 
-                y = Math.random() * (treeLeafHeightPx - size) + halfSize;
-                
-                const normX = x / width;
-                const normY = y / height;
-                
-                if (treeShape === 'triangle') {
-                    const treeHeightNorm = TREE_LEAF_HEIGHT_PERCENT / 100;
-                    const slope = 0.5 / treeHeightNorm;
-                    const isLeft = normX <= 0.5;
-                    const boundaryY = isLeft ? (0.5 - normX) / slope : (normX - 0.5) / slope;
-                    if (normY >= boundaryY && normY <= treeHeightNorm) { isInside = true; }
-                } else if (treeShape === 'circle') {
-                    const h = width / 2;
-                    const k = treeLeafHeightPx / 2;
-                    const a = width / 2;
-                    const b = treeLeafHeightPx / 2;
-                    const termX = Math.pow(x - h, 2) / Math.pow(a, 2);
-                    const termY = Math.pow(y - k, 2) / Math.pow(b, 2);
-                    if (termX + termY <= 1) { isInside = true; }
-                }
-                attempts++;
-            }
-            
-            if (!isInside) { x = width / 2; y = treeLeafHeightPx / 2; }
-            return { x: Math.round(x), y: Math.round(y) };
-        }
+        const addOrnamentButton = document.getElementById('add-ornament-button');
+        const deleteOrnamentButton = document.getElementById('delete-ornament-button');
+        // --- 3. 렌더링 및 UI 업데이트 함수 ---
 
         function renderOrnament(ornament) {
-            const element = document.createElement('div');
-            element.className = `ornament shape-${ornament.shape} ${ornament.isSelected ? 'selected' : ''}`;
-            element.id = `ornament-${ornament.id}`;
+            let element = document.getElementById(`ornament-${ornament.id}`);
+            if (!element) {
+                element = document.createElement('div');
+                element.id = `ornament-${ornament.id}`;
+                element.className = 'ornament';
+                
+                // [13차 커밋 방식] 이벤트 리스너 연결
+                element.addEventListener('mousedown', startDrag);
+                element.addEventListener('touchstart', startDrag, { passive: false });
+                
+                element.addEventListener('click', (e) => {
+                    // [13차 커밋 방식] 드래그가 아니었을 때만 선택 로직 실행
+                    e.stopPropagation();
+                    if (!wasDragged) {
+                        handleOrnamentClick(ornament.id);
+                    }
+                });
+                leafsArea.appendChild(element);
+            }
+
+            // 모양 클래스 업데이트
+            element.className = 'ornament';
+            element.classList.add(`shape-${ornament.shape}`);
+
+            // isSelected 상태에 따라 'selected' 클래스 추가
+            if (ornament.isSelected) {
+                element.classList.add('selected');
+            }
+            
+            // 완료 모드 시 상호작용 방지
+            if (isCompletedMode) {
+                // CSS에서 .completed-mode .ornament로 제어하지만 JS에서도 확실히
+            }
+
+            // 스타일 적용
             element.style.backgroundColor = ornament.color;
-            element.style.setProperty('--ornament-color', ornament.color);
             element.style.width = `${ornament.size}px`;
             element.style.height = `${ornament.size}px`;
             
             const halfSize = ornament.size / 2;
             element.style.left = `${ornament.x - halfSize}px`;
             element.style.top = `${ornament.y - halfSize}px`;
-
-            // 1. 클릭 리스너 (선택/해제) - 드래그가 없었을 때만 토글
-            element.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                if (!wasDragged) { 
-                    selectOrnament(ornament.id); 
-                }
-            });
-
-            // 2. 드래그 시작 리스너 (mousedown)
-            element.addEventListener('mousedown', startDrag);
-            element.addEventListener('touchstart', startDrag, { passive: false });
-
+            
             return element;
         }
 
         function renderAllOrnaments() {
             leafsArea.innerHTML = '';
+            // 초기화
             ornaments.forEach(ornament => {
-                leafsArea.appendChild(renderOrnament(ornament));
+                renderOrnament(ornament);
             });
-
-            activeOrnament = ornaments.find(o => o.isSelected) || null;
             updateControlPanel();
         }
 
         function updateControlPanel() {
-            const isAnyOrnamentSelected = activeOrnament !== null;
+            if (isCompletedMode) return;
+            // 완료 모드면 패널 업데이트 안 함
 
-            completeButton.disabled = !isTreeSelected || ornaments.length === 0;
-            addButton.disabled = !isTreeSelected;
-            deleteButton.disabled = !isAnyOrnamentSelected;
+            const isSelected = selectedOrnamentId !== null;
+            const activeOrnament = isSelected ? ornaments.find(o => o.id === selectedOrnamentId) : null;
+            // 버튼 상태 활성화/비활성화
+            nativeColorInput.disabled = !isSelected;
+            hexColorInput.disabled = !isSelected;
+            sizeSlider.disabled = !isSelected;
+            deleteOrnamentButton.disabled = !isSelected;
 
-            if (isAnyOrnamentSelected) {
-                propertyControls.classList.remove('opacity-50', 'pointer-events-none');
+            shapeButtons.forEach(btn => btn.disabled = !isSelected);
+            if (isSelected && activeOrnament) {
+                // 색상 입력 업데이트
+                nativeColorInput.value = activeOrnament.color;
+                hexColorInput.value = activeOrnament.color;
                 
+                // 크기 슬라이더 업데이트
                 sizeSlider.value = activeOrnament.size;
                 sizeDisplay.textContent = activeOrnament.size;
-                
-                colorPicker.value = activeOrnament.color;
-                hexColorInput.value = activeOrnament.color;
 
-                ornamentShapeButtons.forEach(button => {
-                    button.disabled = false;
-                    button.classList.remove('border-2', 'border-yellow-400');
-                    if (button.getAttribute('data-shape') === activeOrnament.shape) {
-                        button.classList.add('border-2', 'border-yellow-400');
+                // 상태 메시지 업데이트
+                panelTitle.textContent = "장식품 편집 중...";
+                statusMessage.textContent = "색상, 크기, 모양을 변경하거나 드래그하여 이동하세요.";
+
+                // 모양 버튼 활성화 상태 업데이트
+                const shape = activeOrnament.shape;
+                shapeButtons.forEach(btn => {
+                    const btnShape = btn.getAttribute('data-shape');
+                    if (btnShape === shape) {
+                        btn.classList.replace('bg-blue-600', 'bg-red-600');
+                        btn.classList.replace('hover:bg-blue-500', 'hover:bg-red-500');
+                    } else {
+                        btn.classList.replace('bg-red-600', 'bg-blue-600');
+                        btn.classList.replace('hover:bg-red-500', 'hover:bg-blue-500');
                     }
                 });
 
             } else {
-                propertyControls.classList.add('opacity-50', 'pointer-events-none');
-                sizeSlider.value = DEFAULT_ORNAMENT_SIZE;
-                sizeDisplay.textContent = DEFAULT_ORNAMENT_SIZE;
-                colorPicker.value = '#FFD700';
-                hexColorInput.value = '#FFD700';
+                nativeColorInput.value = '#ffffff';
+                hexColorInput.value = '#FFFFFF';
+                sizeSlider.value = 25;
+                sizeDisplay.textContent = 25;
                 
-                ornamentShapeButtons.forEach(button => {
-                    button.disabled = true;
-                    button.classList.remove('border-2', 'border-yellow-400');
-                });
+                statusMessage.textContent = '클릭하여 장식품의 색상/모양/크기를 변경하고 드래그할 수 있습니다.';
             }
 
-            statusMessage.textContent = isTreeSelected 
-                ? `총 장식품: ${ornaments.length}개. ${isAnyOrnamentSelected ? `선택된 장식품의 속성을 조절하세요. (클릭 후 드래그하여 이동)` : '장식품을 클릭하여 선택하거나, 새 장식품을 추가하세요.'}`
-                : '트리 모양 선택 후 장식품을 추가하고 편집할 수 있습니다.';
-        }
-        
-        // --- 4. 장식품 CRUD 및 속성 변경 함수 ---
-
-        function selectOrnament(id) {
-            let newSelectedId = (selectedOrnamentId === id) ? null : id;
-            
-            ornaments = ornaments.map(o => ({ ...o, isSelected: o.id === newSelectedId }));
-            selectedOrnamentId = newSelectedId;
-
-            renderAllOrnaments(); 
+            // 프리셋 버튼 업데이트
+            presetColorsContainer.querySelectorAll('.preset-button').forEach(button => {
+                const buttonColor = button.getAttribute('data-color');
+                button.disabled = !isSelected;
+                if (isSelected && buttonColor === nativeColorInput.value) {
+                    button.style.border = '3px solid #38bdf8';
+                } else {
+                    button.style.border = '1px solid #333';
+                }
+            });
         }
 
-        function addRandomOrnament() {
-            if (!isTreeSelected) return;
+        // --- 4. 이벤트 핸들러: 선택 및 편집 ---
 
-            const currentShape = treeContainer.classList.contains('tree-shape-triangle') ? 'triangle' : 'circle';
-            const width = leafsArea.offsetWidth;
-            const randomPos = getRandomPositionInTree(currentShape, width, CONTAINER_HEIGHT_PX);
-            const randomColor = PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
-            
-            const newOrnament = {
-                id: nextOrnamentId++,
-                x: randomPos.x,
-                y: randomPos.y,
-                color: randomColor,
-                size: DEFAULT_ORNAMENT_SIZE,
-                shape: 'circle',
-                isSelected: false
-            };
-            ornaments.push(newOrnament);
-            
-            selectOrnament(newOrnament.id); 
-        }
-
-        function deleteSelectedOrnament() {
-            if (!selectedOrnamentId) return;
-
-            ornaments = ornaments.filter(o => o.id !== selectedOrnamentId);
-            
-            selectedOrnamentId = null;
-            renderAllOrnaments(); 
-        }
-
-        function applySizeChange(newSize) {
-            if (!activeOrnament) return;
-            const size = parseInt(newSize);
-            activeOrnament.size = size;
-            
-            const el = document.getElementById(`ornament-${activeOrnament.id}`);
-            if (el) {
-                const halfSize = size / 2;
-                const width = leafsArea.offsetWidth;
-                const maxLeafHeight = leafsArea.offsetHeight;
-
-                let newX = activeOrnament.x;
-                let newY = activeOrnament.y;
-                newX = Math.max(halfSize, Math.min(width - halfSize, newX));
-                newY = Math.max(halfSize, Math.min(maxLeafHeight - halfSize, newY));
-
-                activeOrnament.x = newX;
-                activeOrnament.y = newY;
-                
-                el.style.width = `${size}px`;
-                el.style.height = `${size}px`;
-                el.style.left = `${activeOrnament.x - halfSize}px`;
-                el.style.top = `${activeOrnament.y - halfSize}px`;
-            }
+        function handleOrnamentClick(id) {
+            if (isCompletedMode) return;
+            selectedOrnamentId = id;
+            ornaments = ornaments.map(o => ({
+                ...o,
+                isSelected: o.id === id,
+            }));
+            renderAllOrnaments();
+            updateControlPanel();
         }
 
         function applyColorChange(newColor) {
-            if (!activeOrnament) return;
-            
-            const hexRegex = /^#([0-9A-F]{3}){1,2}$/i;
-            if (!hexRegex.test(newColor)) return;
-
-            activeOrnament.color = newColor.toUpperCase();
-            
-            const el = document.getElementById(`ornament-${activeOrnament.id}`);
-            if (el) {
-                el.style.backgroundColor = activeOrnament.color;
-                el.style.setProperty('--ornament-color', activeOrnament.color);
-            }
-            
-            colorPicker.value = activeOrnament.color;
-            hexColorInput.value = activeOrnament.color;
-            updateControlPanel(); 
+            if (selectedOrnamentId === null || !/^#[0-9A-Fa-f]{6}$/i.test(newColor)) return;
+            ornaments = ornaments.map(o => o.id === selectedOrnamentId ? { ...o, color: newColor.toUpperCase() } : o );
+            renderAllOrnaments();
+            updateControlPanel();
         }
-        
+
         function applyShapeChange(newShape) {
-            if (!activeOrnament) return;
-            activeOrnament.shape = newShape;
-            
-            const el = document.getElementById(`ornament-${activeOrnament.id}`);
-            if (el) {
-                el.className = `ornament shape-${activeOrnament.shape} ${activeOrnament.isSelected ? 'selected' : ''}`;
-            }
-            updateControlPanel(); 
+            if (selectedOrnamentId === null) return;
+            ornaments = ornaments.map(o => o.id === selectedOrnamentId ? { ...o, shape: newShape } : o );
+            renderAllOrnaments();
+            updateControlPanel();
         }
 
+        function applySizeChange(newSize) {
+            if (selectedOrnamentId === null) return;
+            const size = parseInt(newSize);
 
-        // --- 5. 드래그 앤 드롭 로직 ---
+            ornaments = ornaments.map(o => {
+                if (o.id === selectedOrnamentId) {
+                    // 크기 변경 시 트리 경계를 벗어나지 않도록 좌표 재조정
+                    // (단순화를 위해 여기서는 크기만 변경하고 렌더링 시 위치 제한은 드래그에서 처리)
+                    return { ...o, size: size };
+                }
+                return o;
+            });
+            renderAllOrnaments();
+            updateControlPanel();
+        }
+
+        function addOrnament() {
+             if (isCompletedMode) return;
+             const treeRect = leafsArea.getBoundingClientRect();
+             const width = leafsArea.offsetWidth;
+             const height = CONTAINER_HEIGHT_PX;
+             // 고정 높이 사용
+             
+             // 트리 모양 확인
+             const treeShape = treeContainer.classList.contains('tree-shape-triangle') ? 'triangle' : 'circle';
+             
+             // 랜덤 위치 생성 (트리 내부)
+             let x, y, isInside = false;
+             let attempts = 0;
+             const size = 25;
+             
+             // 13차 커밋의 랜덤 위치 로직과 유사하게 구현
+             const treeLeafHeightPx = height * (TREE_LEAF_HEIGHT_PERCENT / 100);
+             while (!isInside && attempts < 100) {
+                 x = Math.random() * (width - size) + size/2;
+                 y = Math.random() * (treeLeafHeightPx - size) + size/2;
+                 
+                 // 경계 체크
+                 const normX = x / width;
+                 const normY = y / height;
+                 
+                 if (treeShape === 'triangle') {
+                    const treeHeightNorm = TREE_LEAF_HEIGHT_PERCENT / 100;
+                    const slope = 0.5 / treeHeightNorm;
+                    const isLeft = normX <= 0.5;
+                    const boundaryY = isLeft ? (0.5 - normX) / slope : (normX - 0.5) / slope;
+                    if (normY >= boundaryY && normY <= treeHeightNorm) isInside = true;
+                 } else {
+                    // 원형 (단순화된 타원 체크)
+                    const h = width / 2;
+                    const k = treeLeafHeightPx / 2;
+                    const a = width / 2;
+                    const b = treeLeafHeightPx / 2;
+                    const termX = Math.pow(x - h, 2) / Math.pow(a, 2);
+                    const termY = Math.pow(y - k, 2) / Math.pow(b, 2);
+                    if (termX + termY <= 1) isInside = true;
+                 }
+                 attempts++;
+             }
+             if (!isInside) { x = width/2;
+             y = treeLeafHeightPx/2; } // 실패 시 중앙
+
+             const newOrnament = {
+                 id: nextOrnamentId++,
+                 x: x,
+                 y: y,
+                 color: PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)],
+                 size: 25,
+                 shape: 'circle',
+                 isSelected: true // 추가하자마자 선택
+             };
+             // 기존 선택 해제 및 새 장식 선택
+             ornaments = ornaments.map(o => ({ ...o, isSelected: false }));
+             selectedOrnamentId = newOrnament.id;
+             
+             ornaments.push(newOrnament);
+             renderAllOrnaments();
+             updateControlPanel();
+        }
+
+        function deleteOrnament() {
+            if (selectedOrnamentId === null || isCompletedMode) return;
+            ornaments = ornaments.filter(o => o.id !== selectedOrnamentId);
+            selectedOrnamentId = null;
+            
+            renderAllOrnaments();
+            updateControlPanel();
+            statusMessage.textContent = "장식품이 삭제되었습니다.";
+        }
+
+        // --- 5. [수정됨] 드래그 앤 드롭 로직 (13차 커밋 코드 적용) ---
         
         function getEventCoords(e) {
             const clientX = e.clientX || e.touches[0].clientX;
@@ -546,9 +568,10 @@
         }
 
         function startDrag(e) {
-            if (!isTreeSelected) return;
-
-            e.preventDefault(); 
+            if (isCompletedMode) return;
+            // 완료 모드 체크는 14차 기능 유지를 위해 추가
+            
+            e.preventDefault();
             wasDragged = false; 
             isDragging = true;
             
@@ -560,49 +583,43 @@
             
             const rect = target.getBoundingClientRect();
             const coords = getEventCoords(e);
-
             dragOffset.x = coords.clientX - rect.left;
             dragOffset.y = coords.clientY - rect.top;
 
             target.classList.add('dragging');
-            
             if (!draggedOrnament.isSelected) {
-                 selectOrnament(ornamentId); 
+                 // 13차 커밋의 selectOrnament 대신 14차의 handleOrnamentClick 호출
+                 handleOrnamentClick(ornamentId);
                  draggedOrnament = ornaments.find(o => o.id === ornamentId); 
             }
         }
 
         function onDrag(e) {
             if (!isDragging || !draggedOrnament) return;
-
             e.preventDefault(); 
             
-            if (!wasDragged) {
-                 wasDragged = true;
-            }
+            if (!wasDragged) { wasDragged = true; }
 
             const coords = getEventCoords(e);
             const containerRect = leafsArea.getBoundingClientRect();
             
             const newLeft = coords.clientX - containerRect.left - dragOffset.x;
             const newTop = coords.clientY - containerRect.top - dragOffset.y;
-            
             const size = draggedOrnament.size;
             const halfSize = size / 2;
             const maxLeafWidth = leafsArea.offsetWidth;
             const maxLeafHeight = leafsArea.offsetHeight;
-
             let centerX = newLeft + halfSize;
             let centerY = newTop + halfSize;
-            
+            // 캔버스 밖으로 나가지 않도록 1차 제한
             centerX = Math.max(halfSize, Math.min(maxLeafWidth - halfSize, centerX));
             centerY = Math.max(halfSize, Math.min(maxLeafHeight - halfSize, centerY));
             
             const currentShape = treeContainer.classList.contains('tree-shape-triangle') ? 'triangle' : 'circle';
+            // 13차 커밋의 경계 계산 함수 사용
             const { x: validX, y: validY } = keepInTreeBounds(currentShape, centerX, centerY, maxLeafWidth, CONTAINER_HEIGHT_PX, halfSize);
             centerX = validX;
             centerY = validY;
-
             draggedOrnament.x = centerX;
             draggedOrnament.y = centerY;
 
@@ -615,21 +632,21 @@
         
         function keepInTreeBounds(treeShape, x, y, width, containerHeight, halfSize) {
             const treeLeafHeightPx = leafsArea.offsetHeight;
-            
             if (treeShape === 'triangle') {
                 const normX = x / width;
+                // TREE_LEAF_HEIGHT_PERCENT 상수는 1번 섹션에 정의됨
                 const treeHeightNorm = TREE_LEAF_HEIGHT_PERCENT / 100 * (treeLeafHeightPx / containerHeight);
                 const slope = 0.5 / treeHeightNorm;
-
+                
+                // 삼각형 빗변 계산
                 const boundaryY = (x <= width / 2) ? (0.5 - normX) / slope * treeLeafHeightPx : (normX - 0.5) / slope * treeLeafHeightPx;
-
                 if (y < boundaryY + halfSize) { 
                     y = boundaryY + halfSize;
                 }
             } 
+            // 원형은 별도 제한 없이 사각형 영역 사용 (13차 커밋 기준)
             return { x, y };
         }
-
 
         function endDrag() {
             if (isDragging) {
@@ -642,138 +659,134 @@
             }
         }
 
-        // --- 6. 초기화 및 이벤트 연결 ---
-        
+        // --- 6. 트리 설정 및 완료 처리 ---
+
         function setTreeShape(shape) {
             treeContainer.classList.remove('tree-shape-triangle', 'tree-shape-circle');
             treeContainer.classList.add(`tree-shape-${shape}`);
             
-            shapeModal.classList.add('hidden');
-            resetButton.classList.remove('hidden'); 
-            isTreeSelected = true;
-
-            setTimeout(() => {
-                const width = leafsArea.offsetWidth;
-                
-                ornaments = [];
-                nextOrnamentId = 1;
-                for (let i = 0; i < 5; i++) {
-                    const randomPos = getRandomPositionInTree(shape, width, CONTAINER_HEIGHT_PX);
-                    ornaments.push({
-                        id: nextOrnamentId++,
-                        x: randomPos.x, 
-                        y: randomPos.y, 
-                        color: PRESET_COLORS[i % PRESET_COLORS.length], 
-                        size: DEFAULT_ORNAMENT_SIZE + i * 5,
-                        shape: i % 3 === 0 ? 'square' : i % 3 === 1 ? 'star' : 'circle',
-                        isSelected: false,
-                    });
-                }
-                selectedOrnamentId = null; 
-                renderAllOrnaments();
-            }, 50); 
-        }
-        
-        /**
-         * ✅ 완성 화면으로 전환하는 로직
-         */
-        function handleComplete() {
-            const currentTreeContainer = document.getElementById('tree-container');
-            const currentTreeHtml = currentTreeContainer.outerHTML; 
-            
-            // 트리를 복사하여 완성 화면에 배치
-            completedTreePlaceholder.innerHTML = currentTreeHtml;
-            
-            // 메인 편집 영역 숨기기
-            document.body.classList.add('completed');
-            resetButton.classList.add('hidden'); 
-
-            // 완성 화면 표시
-            completeScreen.classList.add('visible');
-            
-            // 트리 확대 애니메이션 시작
-            setTimeout(() => {
-                completedTreePlaceholder.classList.add('expanded');
-            }, 50); 
-        }
-
-        function resetApp() {
-            isTreeSelected = false;
-            ornaments = [];
-            selectedOrnamentId = null;
-            activeOrnament = null;
-            leafsArea.innerHTML = '';
-            nextOrnamentId = 1;
-            wasDragged = false;
-            isDragging = false;
-            
-            document.body.classList.remove('completed');
-            completeScreen.classList.remove('visible');
-            completedTreePlaceholder.classList.remove('expanded');
-            completedTreePlaceholder.innerHTML = ''; 
-
-            treeContainer.classList.remove('tree-shape-triangle', 'tree-shape-circle');
-            treeContainer.classList.add('tree-shape-triangle'); 
-            resetButton.classList.add('hidden');
-            
-            // 모달 표시
-            shapeModal.classList.remove('hidden'); 
-            
-            updateControlPanel();
+            // 14차 커밋의 잎사귀 클리핑 초기화
+            if (shape === 'triangle') {
+               // CSS 클래스로 처리됨
+            }
         }
 
         function initializeApp() {
-            // 1. 트리 모양 선택 버튼 연결 (모달)
-            document.querySelectorAll('.shape-select-button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const shape = e.target.getAttribute('data-shape');
-                    setTreeShape(shape);
+            // 프리셋 색상 버튼 생성
+            PRESET_COLORS.forEach(color => {
+                const btn = document.createElement('button');
+                btn.className = 'preset-button w-8 h-8 rounded-full border border-gray-700 hover:scale-110 transition';
+                btn.style.backgroundColor = color;
+                btn.setAttribute('data-color', color);
+                btn.addEventListener('click', (e) => {
+                    if (e.target.disabled) return;
+                    applyColorChange(color);
                 });
+                presetColorsContainer.appendChild(btn);
             });
+            // 초기 이벤트 연결
+            nativeColorInput.addEventListener('input', (e) => {
+                hexColorInput.value = e.target.value.toUpperCase();
+                applyColorChange(e.target.value);
+            });
+            hexColorInput.addEventListener('change', (e) => applyColorChange(e.target.value));
             
-            // 2. 장식품 CRUD/속성 제어 연결 (생략)
-            addButton.addEventListener('click', addRandomOrnament);
-            deleteButton.addEventListener('click', deleteSelectedOrnament);
-            colorPicker.addEventListener('input', (e) => applyColorChange(e.target.value));
-            hexColorInput.addEventListener('input', (e) => {
-                if (e.target.value.length === 7 && e.target.value.startsWith('#')) {
-                    applyColorChange(e.target.value.toUpperCase());
-                }
-            });
             sizeSlider.addEventListener('input', (e) => {
                 sizeDisplay.textContent = e.target.value;
                 applySizeChange(e.target.value);
             });
-            ornamentShapeButtons.forEach(button => {
+            shapeButtons.forEach(button => {
                 button.addEventListener('click', (e) => {
-                    if (activeOrnament) {
-                        applyShapeChange(e.currentTarget.getAttribute('data-shape'));
-                    }
+                    if (e.target.disabled) return;
+                    const shape = e.target.getAttribute('data-shape');
+                    applyShapeChange(shape);
                 });
             });
-            
-            // 3. 기타 버튼 연결
+
+            completeButton.addEventListener('click', handleComplete);
             resetButton.addEventListener('click', resetApp);
-            completeButton.addEventListener('click', handleComplete); 
-            
-            // 4. 드래그 앤 드롭 전역 이벤트 연결
+            addOrnamentButton.addEventListener('click', addOrnament);
+            deleteOrnamentButton.addEventListener('click', deleteOrnament);
+
+            // 트리 모양 선택 모달 버튼
+            document.querySelectorAll('.shape-select-button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                     const shape = e.target.getAttribute('data-shape');
+                     setTreeShape(shape);
+                     shapeModal.style.display = 'none';
+                     
+                     // 초기 장식품 생성
+                     ornaments = [];
+                     for(let i=0; i<INITIAL_ORNAMENTS; i++) addOrnament();
+                     // 처음에 마지막 추가된 것이 선택되어 있으므로 초기화 혹은 유지
+                     statusMessage.textContent = '트리가 준비되었습니다. 장식을 꾸며보세요!';
+                });
+            });
+            // [13차 커밋 방식] 전역 드래그 이벤트 리스너 추가
             document.addEventListener('mousemove', onDrag);
             document.addEventListener('mouseup', endDrag);
             document.addEventListener('touchmove', onDrag, { passive: false }); 
             document.addEventListener('touchend', endDrag);
-
-            // 5. 트리 영역 클릭 시 선택 해제
+            // [13차 커밋 방식] 배경 클릭 시 선택 해제 (wasDragged 확인)
             leafsArea.addEventListener('click', (e) => {
                 if (e.target.id === 'leafs-area') {
                     if (!wasDragged) {
-                        selectOrnament(selectedOrnamentId); 
+                        selectedOrnamentId = null;
+                        renderAllOrnaments(); // 선택 해제 반영
+                        updateControlPanel();
                     }
                 }
                 wasDragged = false; 
             });
+
+            resetApp();
+        }
+
+        // --- 7. 완료 기능 ---
+        function handleComplete() {
+            completeButton.disabled = true;
+            mainHeader.style.display = 'none';
+            controlPanel.style.display = 'none';
+            resetButton.style.display = 'none';
+
+            document.body.classList.add('completed-mode');
+            isCompletedMode = true;
+            selectedOrnamentId = null; 
+            renderAllOrnaments(); 
+
+            mainLayout.classList.add('completed-layout');
+            treeSection.classList.remove('lg:w-1/2');
+            treeSection.classList.add('lg:w-full');
+            treeContainer.style.transform = 'scale(1.5)';
             
-            // 초기 상태 설정
-            resetApp(); 
+            setTimeout(() => {
+                completeMessage.classList.add('show'); 
+                resetButton.style.display = 'block'; 
+
+                // [수정됨] 3초 뒤에 메시지 창 사라지게 설정
+                setTimeout(() => {
+                    completeMessage.classList.remove('show');
+                }, 3000);
+
+            }, 600);
+        }
+
+        function resetApp() {
+            isCompletedMode = false;
+            document.body.classList.remove('completed-mode');
+            completeMessage.classList.remove('show');
+            
+            mainHeader.style.display = 'block';
+            controlPanel.style.display = 'block';
+            mainLayout.classList.remove('completed-layout');
+            treeSection.classList.remove('lg:w-full');
+            treeSection.classList.add('lg:w-1/2');
+            treeContainer.style.transform = 'scale(1)';
+
+            updateControlPanel();
+            shapeModal.style.display = 'flex';
+            resetButton.style.display = 'none';
+            completeButton.disabled = false;
         }
 
         window.onload = initializeApp;
