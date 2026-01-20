@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>크리스마스 트리 디자인 스튜디오 </title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom CSS: 배경 및 기본 레이아웃 스타일 */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #10113C; /* Dark Blue Christmas Background */
+            min-height: 100vh;
+            color: #e2e8f0; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem; /* p-6 */
+            transition: all 0.5s;
+        }
+
+        /* Tree Container Styles - 트리가 배치될 영역 */
+        .tree-shape-container {
+            position: relative;
+            width: 300px;
+            height: 400px; 
+            margin: 0 auto;
+            z-index: 1;
+        }
+        
+        /* Tree Leaves Area Styles - 실제 장식품이 위치할 영역 */
+        .tree-leafs {
+            position: relative;
+            width: 100%;
+            height: 85%; /* 트리가 차지하는 상대적 높이 */
+            background-color: #16a34a; /* Green Tree */
+            border-radius: 0 0 10% 10%;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
+            /* 기본 삼각형 모양 (CSS 변형) */
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%); 
+            transition: clip-path 0.3s ease-in-out, border-radius 0.3s ease-in-out;
+        }
+        
+        /* Shape-specific CSS (Tree) */
+        .tree-shape-triangle .tree-leafs {
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%); 
+            border-radius: 0 0 10% 10%;
+        }
+
+        .tree-shape-circle .tree-leafs {
+            clip-path: none;
+            /* 타원형에 가까운 모양 */
+            border-radius: 50% 50% 10% 10% / 60% 60% 10% 10%; 
+        }
+
+        /* Star Positioning */
+        .tree-star {
+            position: absolute;
+            top: 20px; 
+            left: 50%;
+            transform: translate(-50%, -100%); 
+            font-size: 50px;
+            z-index: 20;
+            pointer-events: none; 
+        }
+
+        /* Tree Trunk Styles */
+        .tree-trunk {
+            width: 20%;
+            height: 15%; 
+            background-color: #78350f; /* Brown Trunk */
+            border-radius: 0 0 5px 5px;
+            margin: 0 auto;
+        }
+
+        /* Control Panel/Modal Background */
+        .control-bg {
+            background-color: #1e293b; /* Slate-700 equivalent */
+        }
+
+        /* Modal Styles */
+        #shape-modal {
+            z-index: 50; 
+            background-color: rgba(16, 17, 60, 0.9); 
+        }
+        
+        /* Ornament Styles - 장식품 스타일 */
+        .ornament {
+            position: absolute;
+            border-radius: 50%; /* 기본 원형 */
+            /* 장식품 중심을 기준으로 위치 조정 */
+            transform: translate(-50%, -50%); 
+            cursor: grab; /* 드래그 가능한 커서 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            /* 모든 상태 변화에 부드러운 전환 적용 */
+            transition: border 0.1s ease-out, transform 0.1s ease-out, box-shadow 0.2s ease-out; 
+            border: 2px solid transparent; /* 선택 시 테두리 */
+            /* 크기 및 색상 기본값 */
+            width: 20px; 
+            height: 20px;
+            background-color: #FFD700; /* Gold */
+            touch-action: none; /* 모바일에서 터치 드래그를 허용 */
+        }
+
+        /* 마우스 호버 시 강조 (선택/드래그 중이 아닐 때) */
+        .ornament:hover:not(.selected):not(.dragging) {
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); /* 소프트 화이트 글로우 */
+            transform: translate(-50%, -50%) scale(1.1); /* 약간 커짐 */
+        }
+
+        /* Ornament Selected State (클릭 후) */
+        .ornament.selected {
+            border: 2px solid #fff; /* White highlight */
+            transform: translate(-50%, -50%) scale(1.2);
+            z-index: 10;
+        }
+        
+        /* Dragging State: 드래그 중일 때는 애니메이션을 제거하고 커서를 변경 */
+        .ornament.dragging {
+            cursor: grabbing;
+            transition: none; /* 드래그 중에는 위치 전환을 즉시 처리 */
+            z-index: 100; /* 최상단에 배치 */
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.6); /* 더 강한 그림자 */
+            transform: translate(-50%, -50%) scale(1.25); /* 살짝 더 커지게 */
+        }
+
+    </style>
+</head>
+<body class="p-6">
+
+    <!-- Reset Button (초기에는 숨김) -->
+    <button id="reset-button" class="fixed top-4 right-4 z-40 px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-full shadow-lg transition hidden hover:bg-yellow-400">
+        🔄 다시 하기
+    </button>
+
+    <!-- Main Header -->
+    <header id="main-header" class="text-center mb-8 w-full max-w-5xl">
+        <h1 class="text-4xl font-extrabold text-green-400">
+            🎄 크리스마스 트리 디자인 스튜디오 🎄
+        </h1>
+        <p class="text-gray-400 mt-2">장식품을 좌클릭하여 드래그하거나 터치하여 위치를 옮겨보세요!</p>
+    </header>
+
+    <!-- Main Layout: Tree Area + Control Panel -->
+    <div id="main-layout" class="flex flex-col lg:flex-row gap-10 w-full max-w-5xl">
+        
+        <!-- 1. Tree Area (트리 디자인이 표시될 영역) -->
+        <div id="tree-section" class="flex-shrink-0 w-full lg:w-1/2 flex flex-col items-center">
+            <div id="tree-container-wrapper" class="w-full h-full flex justify-center items-center">
+                <div id="tree-container" class="tree-shape-container"> 
+                    <div class="tree-star">⭐</div>
+                    <div id="leafs-area" class="tree-leafs">
+                        <!-- 장식품이 여기에 동적으로 렌더링될 예정 -->
+                    </div>
+                    <div class="tree-trunk"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Control Panel (장식품 속성을 제어하는 패널) -->
+        <div id="control-panel" class="w-full lg:w-1/2 p-6 control-bg rounded-xl shadow-2xl space-y-6">
+            <h2 id="panel-title" class="text-2xl font-bold text-red-400 mb-4 border-b border-gray-700 pb-2">장식품 제어</h2>
+            
+            <p id="status-message" class="text-sm text-center text-gray-400 mt-4">
+                트리 모양 선택 후 장식품을 추가/선택/드래그할 수 있습니다.
+            </p>
+
+            <!-- 장식품 추가 버튼 -->
+            <button id="add-ornament-button" class="w-full py-3 bg-purple-600 text-white text-lg font-bold rounded-lg shadow-md disabled:bg-gray-600 hover:bg-purple-500 transition" disabled>
+                ➕ 새 장식품 추가
+            </button>
+            
+            <!-- 장식품 삭제 버튼 -->
+            <button id="delete-ornament-button" class="w-full py-3 bg-red-700 text-white text-lg font-bold rounded-lg shadow-md disabled:bg-gray-600 hover:bg-red-600 transition" disabled>
+                ❌ 선택 장식품 삭제
+            </button>
+
+            <div class="space-y-4 border-t border-gray-700 pt-4 opacity-50 pointer-events-none">
+                <h3 class="text-xl font-semibold text-gray-300"></h3>
+                <div class="text-center text-sm text-gray-500"></div>
+            </div>
+
+            <!-- 완성 버튼 (현재는 비활성화된 상태 유지) -->
+            <div class="border-t border-gray-700 pt-6">
+                <button id="complete-button" class="w-full py-3 bg-green-700 text-white text-xl font-extrabold rounded-lg shadow-xl disabled:opacity-50 hover:bg-green-600 transition" disabled>
+                    ✔️ 완성했어요!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 트리 모양 선택 모달 (최초 실행 시 표시됨) -->
+    <div id="shape-modal" class="modal fixed inset-0 flex items-center justify-center p-4">
+        <div class="modal-content p-8 rounded-xl w-full max-w-md text-center space-y-6 control-bg shadow-2xl">
+            <h3 class="text-3xl font-extrabold text-green-400">트리 모양을 선택해주세요</h3>
+            <p class="text-gray-300">선택 후 장식품을 추가/편집할 수 있습니다.</p>
+            <div class="flex justify-around gap-4">
+                <button data-shape="triangle" class="shape-select-button flex-1 py-4 bg-green-700 text-white font-bold rounded-lg hover:bg-green-600 transition shadow-lg">
+                    삼각형 트리 (▲)
+                </button>
+                <button data-shape="circle" class="shape-select-button flex-1 py-4 bg-green-700 text-white font-bold rounded-lg hover:bg-green-600 transition shadow-lg">
+                    원형 트리 (🟢)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 완성 메시지 모달 (완성 버튼 클릭 시 표시) -->
+    <div id="complete-message" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 p-4">
+        <div class="modal-content p-8 rounded-xl w-full max-w-lg text-center space-y-6 control-bg shadow-2xl">
+            <h3 class="text-3xl font-extrabold text-yellow-400">✨ 짜잔! 멋진 트리가 완성되었어요! ✨</h3>
+            <p class="text-gray-300">트리를 초기화하고 다시 시작하려면 '다시 하기' 버튼을 눌러주세요.</p>
+            <div id="complete-image-wrapper" class="w-full h-auto shadow-2xl rounded-lg border-4 border-white overflow-hidden mx-auto">
+                <img id="complete-image" 
+                     src="https://placehold.co/500x500/10113C/e2e8f0?text=Completed+Tree"
+                     alt="Completed Christmas Tree" 
+                     class="w-full h-full object-cover">
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript: 장식품 관리 및 드래그 로직 -->
+    <script>
+        // --- 1. State and Initial Data ---
+        let isTreeSelected = false; 
+        let ornaments = []; // {id: string, x: number, y: number} 객체의 배열 (x, y는 % 단위)
+        let selectedOrnamentId = null; 
+        
+        // 드래그 상태 관리 변수
+        let isDragging = false;
+        let wasDragged = false; // 클릭과 드래그 분리용 플래그: true면 click 이벤트를 무시
+        let dragId = null;
+        let dragOffsetX = 0; // 마우스 클릭 위치와 장식품 중심과의 X 오프셋 (픽셀)
+        let dragOffsetY = 0; // 마우스 클릭 위치와 장식품 중심과의 Y 오프셋 (픽셀)
+        
+        // 장식품 크기 (CSS에서 정의된 값, 픽셀 기준)
+        const ORNAMENT_SIZE_PX = 20; 
+        const TREE_LEAF_HEIGHT_PERCENT = 85; // 트리가 차지하는 상대적 높이(%)
+        
+        // --- 2. DOM References ---
+        const treeContainer = document.getElementById('tree-container');
+        const leafsArea = document.getElementById('leafs-area');
+        const shapeModal = document.getElementById('shape-modal');
+        const resetButton = document.getElementById('reset-button');
+        const addButton = document.getElementById('add-ornament-button');
+        const deleteButton = document.getElementById('delete-ornament-button');
+        
+        const controlElements = [
+            addButton,
+            deleteButton,
+            document.getElementById('complete-button'),
+        ];
+        
+        // --- 3. Utility Functions ---
+
+        /**
+         * 0과 max 사이의 랜덤 정수를 반환합니다.
+         */
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        /**
+         * 트리의 모양별 경계 내부에 무작위 좌표를 생성합니다. (0-100% 기준)
+         * @param {string} treeShape - 현재 트리의 모양 ('triangle' 또는 'circle')
+         * @returns {{x: number, y: number}} x, y 좌표 (0-100% 기준)
+         */
+        function getRandomPositionInTree(treeShape) {
+            // 장식품의 중심이 트리의 85% 높이 영역 내에 위치하도록 로직 개선
+            let x, y, isInside = false;
+            let attempts = 0;
+            const yMax = TREE_LEAF_HEIGHT_PERCENT; 
+            
+            while (!isInside && attempts < 100) { 
+                // x, y를 0부터 100까지의 백분율로 무작위 생성
+                x = getRandomInt(90) + 5; 
+                y = getRandomInt(yMax - 10) + 5; // yMax 내에서 5%~90% 사이
+                
+                // 장식품 크기(20px)를 무시하고 트리의 잎사귀 영역 (0-85%) 중앙을 기준으로 합니다.
+                // 정밀한 위치 검사는 드래그 시에만 수행하도록 간소화
+                
+                if (treeShape === 'triangle') {
+                    // 삼각형 범위: y=0에서 x=50, y=85에서 x=0~100
+                    const yNormalized = y / yMax; 
+                    const maxXOffset = 50 * yNormalized; 
+                    const minX = 50 - maxXOffset;
+                    const maxX = 50 + maxXOffset;
+
+                    if (x >= minX && x <= maxX) {
+                        isInside = true;
+                    }
+                } else if (treeShape === 'circle') {
+                    // 타원형 범위 (중심: 50, 42.5 / 반지름: Rx=50, Ry=42.5)
+                    const h = 50; 
+                    const k = yMax / 2; 
+                    const a = 50; 
+                    const b = k; 
+                    
+                    const termX = Math.pow(x - h, 2) / Math.pow(a, 2);
+                    const termY = Math.pow(y - k, 2) / Math.pow(b, 2);
+
+                    if (termX + termY <= 1) {
+                        isInside = true;
+                    }
+                }
+                
+                attempts++;
+            }
+            
+            if (!isInside) {
+                return { x: 50, y: 50 }; // 안전한 기본값
+            }
+
+            // 소수점 둘째 자리까지 반올림
+            return { 
+                x: Math.round(x * 100) / 100, 
+                y: Math.round(y * 100) / 100 
+            };
+        }
+
+        /**
+         * 장식품 배열을 기반으로 HTML 요소를 렌더링합니다.
+         */
+        function renderOrnaments() {
+            // 기존 장식품 제거
+            leafsArea.innerHTML = ''; 
+
+            ornaments.forEach(ornament => {
+                const el = document.createElement('div');
+                el.className = 'ornament';
+                el.style.left = `${ornament.x}%`;
+                el.style.top = `${ornament.y}%`;
+                el.id = `ornament-${ornament.id}`; 
+                
+                if (ornament.id === selectedOrnamentId) {
+                    el.classList.add('selected');
+                }
+
+                // 드래그 시작 리스너 연결 (마우스 및 터치)
+                el.addEventListener('mousedown', startDrag);
+                el.addEventListener('touchstart', startDrag);
+                
+                // 클릭 리스너 연결 (선택 토글)
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    // 드래그가 발생하지 않았을 경우에만 선택/해제 토글
+                    if (!wasDragged) { 
+                        selectOrnament(ornament.id); 
+                    }
+                    // wasDragged는 endDrag에서 초기화됨
+                });
+
+                leafsArea.appendChild(el);
+            });
+
+            updateControlPanel();
+        }
+
+        /**
+         * 장식품 데이터를 ID로 찾아 위치를 업데이트합니다.
+         */
+        function updateOrnamentPosition(id, newX, newY) {
+            const ornament = ornaments.find(o => o.id === id);
+            if (ornament) {
+                ornament.x = newX;
+                ornament.y = newY;
+            }
+        }
+
+        // --- 4. Drag Logic Functions (Mouse/Touch) ---
+        
+        /**
+         * 이벤트 객체에서 클라이언트 좌표를 추출합니다.
+         */
+        function getClientCoords(e) {
+            if (e.touches && e.touches.length) {
+                return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+            }
+            return { clientX: e.clientX, clientY: e.clientY };
+        }
+
+        /**
+         * 드래그 시작 핸들러
+         */
+        function startDrag(e) {
+            // [요구사항 1]: 마우스 이벤트일 경우, 좌클릭(버튼 0)만 허용합니다. 터치 이벤트는 통과.
+            if (e.type === 'mousedown' && e.button !== 0) return;
+
+            if (!isTreeSelected || isDragging) return;
+
+            const targetElement = e.currentTarget;
+            const ornamentId = targetElement.id.split('-')[1];
+
+            // 1. 선택 상태로 설정
+            if (selectedOrnamentId !== ornamentId) {
+                 document.querySelectorAll('.ornament.selected').forEach(el => el.classList.remove('selected'));
+                 targetElement.classList.add('selected');
+            }
+            selectedOrnamentId = ornamentId;
+
+            // 2. 드래그 상태 설정
+            isDragging = true;
+            wasDragged = false; 
+            dragId = ornamentId;
+            targetElement.classList.add('dragging');
+
+            // 3. 오프셋 계산 (마우스 위치와 장식품 중심 간의 픽셀 거리)
+            const coords = getClientCoords(e);
+            const rect = targetElement.getBoundingClientRect();
+            
+            // 장식품의 중심 좌표
+            const ornamentCenterX = rect.left + rect.width / 2;
+            const ornamentCenterY = rect.top + rect.height / 2;
+            
+            // 마우스 클릭 위치와 중심 사이의 오프셋 저장
+            dragOffsetX = coords.clientX - ornamentCenterX;
+            dragOffsetY = coords.clientY - ornamentCenterY;
+
+            updateControlPanel(); 
+
+            e.stopPropagation();
+            e.preventDefault(); 
+        }
+
+        /**
+         * 드래그 중 핸들러 (위치 업데이트)
+         */
+        function onDrag(e) {
+            if (!isDragging) return;
+
+            e.preventDefault(); 
+            // 이동이 시작되면 바로 wasDragged를 true로 설정하여 클릭 이벤트 방지
+            wasDragged = true; 
+
+            const coords = getClientCoords(e);
+            const leafsRect = leafsArea.getBoundingClientRect();
+            const targetElement = document.getElementById(`ornament-${dragId}`);
+            if (!targetElement) return;
+
+            // 1. 트리 영역을 기준으로 한 마우스 위치 (오프셋 적용)
+            // 마우스 위치 - 트리 시작 위치 - 클릭 오프셋
+            let relativeX = coords.clientX - leafsRect.left - dragOffsetX;
+            let relativeY = coords.clientY - leafsRect.top - dragOffsetY;
+
+            // 2. [요구사항 3]: 경계 제한 (장식품의 중심이 트리 영역 안에 있도록)
+            const halfSize = ORNAMENT_SIZE_PX / 2;
+            
+            // X축 제한 (왼쪽/오른쪽 경계)
+            relativeX = Math.max(halfSize, Math.min(leafsRect.width - halfSize, relativeX));
+            
+            // Y축 제한 (위쪽/아래쪽 경계. 트리의 높이는 leafsArea의 85%임)
+            const maxHeightPx = leafsRect.height * (TREE_LEAF_HEIGHT_PERCENT / 100);
+            relativeY = Math.max(halfSize, Math.min(maxHeightPx - halfSize, relativeY));
+
+            // 3. 픽셀 좌표를 백분율(%)로 변환
+            let newX = (relativeX / leafsRect.width) * 100;
+            let newY = (relativeY / leafsRect.height) * 100;
+            
+            // 4. 정밀도를 높이기 위해 소수점 둘째 자리까지 반올림
+            newX = Math.round(newX * 100) / 100;
+            newY = Math.round(newY * 100) / 100;
+
+            // 5. 상태 및 DOM 업데이트
+            updateOrnamentPosition(dragId, newX, newY);
+            
+            targetElement.style.left = `${newX}%`;
+            targetElement.style.top = `${newY}%`;
+        }
+
+        /**
+         * 드래그 종료 핸들러
+         */
+        function endDrag() {
+            if (!isDragging) return;
+            
+            const targetElement = document.getElementById(`ornament-${dragId}`);
+            if (targetElement) {
+                targetElement.classList.remove('dragging');
+            }
+            
+            // 드래그 상태 해제
+            isDragging = false;
+            dragId = null;
+            // wasDragged는 클릭 이벤트 직전에 초기화될 것임
+        }
+
+
+        // --- 5. Main Logic Functions ---
+
+        /**
+         * 장식품을 선택 상태로 설정하고 UI를 업데이트합니다. (선택 토글)
+         */
+        function selectOrnament(id) {
+            if (isDragging) return; 
+
+            if (selectedOrnamentId === id) {
+                selectedOrnamentId = null; // 선택 해제
+            } else {
+                selectedOrnamentId = id; // 새로 선택
+            }
+            renderOrnaments(); // 전체 렌더링을 통해 선택 상태 UI 일괄 업데이트
+        }
+
+        /**
+         * 새로운 장식품을 랜덤 위치에 추가합니다.
+         */
+        function addRandomOrnament() {
+            if (!isTreeSelected) return;
+
+            const treeShape = treeContainer.classList.contains('tree-shape-triangle') ? 'triangle' : 'circle';
+            const position = getRandomPositionInTree(treeShape);
+            
+            const newOrnament = {
+                id: crypto.randomUUID(),
+                x: position.x,
+                y: position.y,
+            };
+
+            ornaments.push(newOrnament);
+            selectedOrnamentId = newOrnament.id; 
+            renderOrnaments();
+        }
+
+        /**
+         * 선택된 장식품을 배열에서 제거하고 UI를 업데이트합니다.
+         */
+        function deleteSelectedOrnament() {
+            if (selectedOrnamentId === null) return;
+
+            ornaments = ornaments.filter(ornament => ornament.id !== selectedOrnamentId);
+            
+            selectedOrnamentId = null; 
+            renderOrnaments();
+        }
+
+        /**
+         * 트리 모양을 설정하고 초기 장식품을 배치합니다.
+         * @param {string} shape - 'triangle' 또는 'circle'
+         */
+        function setTreeShape(shape) {
+            treeContainer.classList.remove('tree-shape-triangle', 'tree-shape-circle');
+            treeContainer.classList.add(`tree-shape-${shape}`);
+            
+            shapeModal.classList.add('hidden');
+            resetButton.classList.remove('hidden'); 
+            isTreeSelected = true;
+
+            // 초기 랜덤 장식품 5개 배치
+            ornaments = [];
+            for (let i = 0; i < 5; i++) {
+                addRandomOrnament(); 
+            }
+            selectedOrnamentId = null; 
+
+            // 마지막 상태 반영
+            renderOrnaments();
+            updateControlPanel();
+        }
+
+        /**
+         * 컨트롤 패널의 입력 필드 및 버튼 활성화/비활성화를 관리하고 상태 메시지를 업데이트합니다.
+         */
+        function updateControlPanel() { 
+            controlElements.forEach(el => {
+                el.disabled = !isTreeSelected;
+            });
+            
+            deleteButton.disabled = !isTreeSelected || selectedOrnamentId === null;
+
+            const statusMessage = document.getElementById('status-message');
+            if (isTreeSelected) {
+                 statusMessage.textContent = `총 장식품: ${ornaments.length}개. ${selectedOrnamentId ? '장식품이 선택되었습니다. 드래그하여 위치를 옮기세요!' : '장식품을 클릭/터치하거나 추가 버튼을 누르세요.'}`;
+            } else {
+                 statusMessage.textContent = '트리 모양 선택 후 장식품을 추가/선택/드래그할 수 있습니다.';
+            }
+        }
+        
+        // --- 6. Initialization ---
+        function initializeApp() {
+            // 1. 트리 모양 선택 버튼 연결 (모달)
+            document.querySelectorAll('.shape-select-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const shape = e.target.getAttribute('data-shape');
+                    setTreeShape(shape);
+                });
+            });
+            
+            // 2. 장식품 추가/삭제 버튼 연결
+            addButton.addEventListener('click', addRandomOrnament);
+            deleteButton.addEventListener('click', deleteSelectedOrnament);
+
+            // 3. 트리 영역 클릭 시 선택 해제 (버블링 이용)
+            leafsArea.addEventListener('click', (e) => {
+                // 트리의 빈 공간을 클릭하고, 드래그 상태가 아니었을 때만 해제
+                if (e.target.id === 'leafs-area' && !wasDragged) {
+                    selectOrnament(selectedOrnamentId); 
+                }
+                wasDragged = false; // click 이벤트 처리 후 플래그 초기화
+            });
+            
+            // 4. 리셋 버튼 연결 (페이지 새로고침)
+            resetButton.addEventListener('click', () => {
+                window.location.reload();
+            });
+
+            // 5. 전역 드래그 이벤트 리스너 연결 (마우스 및 터치)
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchmove', onDrag, { passive: false }); 
+            document.addEventListener('touchend', endDrag);
+            
+            // 6. 초기 컨트롤 패널 상태 업데이트
+            updateControlPanel();
+        }
+
+        window.onload = initializeApp;
+    </script>
+</body>
+</html>
+git commit -m "add move"
